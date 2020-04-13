@@ -20,8 +20,15 @@ data Board = Board { size :: Int,
   deriving Show
 
 -- Default board is 8x8, neither played has passed, with 4 initial pieces 
-initBoard = Board 8 0 [((3,3), Black), ((3, 4), White),
-                       ((4,3), White), ((4,4), Black)]
+initBoard :: Int -> Board
+initBoard size = Board size 0 (getInitialPieces size)
+
+-- Gets the position of the first four starter pieces based on the board size 
+getInitialPieces :: Int -> [(Position, Col)]
+getInitialPieces size =  do let a = (size - 1) `div` 2
+                            let b = a + 1
+                            [ ((a , a), White), ((b, a), Black), 
+                              ((a, b), Black),  ((b, b), White) ]
 
 -- Overall state is the board and whose turn it is, plus any further
 -- information about the world (this may later include, for example, player
@@ -35,7 +42,10 @@ data GameState
        = GameState { board :: Board,
                      turn :: Col }
 
-initGameState = GameState initBoard Black
+-- Gets the initial game state
+-- Size of the board is passed in to allow initial pieces to be positioned correctly
+initGameState :: Int -> GameState
+initGameState size = GameState (initBoard size)  Black
 
 -- Play a move on the board; return 'Nothing' if the move is invalid
 -- (e.g. outside the range of the board, there is a piece already there,

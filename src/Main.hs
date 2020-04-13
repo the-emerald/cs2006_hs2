@@ -14,4 +14,4 @@ gameLoop st
          undefined
 
 main :: IO ()
-main = gameLoop initGameState
+main = gameLoop (initGameState 16)
