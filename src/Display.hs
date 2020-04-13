@@ -25,7 +25,7 @@ import Data.Ix
 -- This will need to extract the Board from the world state and draw it
 -- as a grid plus pieces.
 showGameState :: GameState -> String
-showGameState g = undefined
+showGameState g = "  " ++ getHeader (size (board g)) ++ "\n" ++ getTable (board g) (size (board g))
 
 
 -- Returns letters for top of board
@@ -40,11 +40,19 @@ addSpaces [] = []
 addSpaces (x:xs) =  x : ' ' : addSpaces xs
 
 
+getTable :: Board -> Int -> String
+getTable board row = if (row > 0) then 
+                        getTableRow board (range( (0, row -1), (size board - 1, row - 1) )) ++ "\n" ++ getTable board (row - 1)
+                      else 
+                        ""
+
 -- Returns pieces on given row of board 
 getTableRow :: Board -> [(Int, Int)] -> String
-getTableRow board [] = []
-getTableRow board (cell : xs) = getCell cell (pieces board) : getTableRow board xs
-  
+getTableRow board [] = []                                                                                                   -- If end of list detected, output empty list
+getTableRow board ((xPos, yPos) : xs)                                                                                       -- Given a board and a range of coordinates 
+        | xPos == 0 = show((size board) - yPos) ++ ' ' : getCell (xPos, yPos) (pieces board) : ' ' : getTableRow board xs   -- If current coordinate is the first in a column (x = 0) then print the column number 
+        | otherwise = getCell (xPos, yPos) (pieces board) : ' ' : getTableRow board xs                                      -- Otherwise print the next coordinates piece 
+
 
 -- Given a row and an index return either . * O 
 getCell :: (Int,Int) -> [(Position, Col)] -> Char
