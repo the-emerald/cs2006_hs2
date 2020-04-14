@@ -7,11 +7,21 @@ import AI
 
 gameLoop :: GameState -> IO ()
 gameLoop st
-    = do putStrLn (showGameState st)
-         putStr "Move: "
+    = do putStr "Move: "
          move <- getLine
          let (x, y) = getCoord move
-         undefined
+         let newBoard = makeMove (board st) (turn st) (x, y)
+
+         case newBoard of 
+            Just board -> do let st' = GameState board (other (turn st))
+                             putStrLn( showGameState st' )
+                             gameLoop st'
+
+            Nothing -> do putStrLn "[ERROR] Invalid Move"
+                          gameLoop st
+         
 
 main :: IO ()
-main = gameLoop (initGameState 16)
+main = do let st = initGameState 8
+          putStrLn (showGameState st) 
+          gameLoop (st)

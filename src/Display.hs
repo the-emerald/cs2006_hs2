@@ -37,7 +37,7 @@ getHeader size = do let xs = [65 .. 65 + (size - 1)]
 -- Gets the correct space for header based on board size 
 headSpace :: Board -> String 
 headSpace board 
-        | (size board) > 9 = "   "
+        | (size board) > 9 = "   "   -- 9 is the last possible single digit number
         | otherwise = "  "
 
 

@@ -51,7 +51,11 @@ initGameState size = GameState (initBoard size)  Black
 -- (e.g. outside the range of the board, there is a piece already there,
 -- or the move does not flip any opposing pieces)
 makeMove :: Board -> Col -> Position -> Maybe Board
-makeMove = undefined
+makeMove board colour position = Just (Board (size board) 0 (addPiece (pieces board) (position, colour)))   -- << NEED TO GREATLY EXPAND
+
+-- Adds Piece to given list of pieces 
+addPiece :: [(Position, Col)] -> (Position, Col) -> [(Position, Col)]
+addPiece pieces piece = pieces ++ [piece] 
 
 -- Check the current score
 -- Returns a pair of the number of black pieces, and the number of
