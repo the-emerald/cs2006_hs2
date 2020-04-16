@@ -19,9 +19,11 @@ data Board = Board { size :: Int,
                    }
   deriving Show
 
+
 -- Default board is 8x8, neither played has passed, with 4 initial pieces 
 initBoard :: Int -> Board
 initBoard size = Board size 0 (getInitialPieces size)
+
 
 -- Gets the position of the first four starter pieces based on the board size 
 getInitialPieces :: Int -> [(Position, Col)]
@@ -29,6 +31,7 @@ getInitialPieces size =  do let a = (size - 1) `div` 2
                             let b = a + 1
                             [ ((a , a), White), ((b, a), Black), 
                               ((a, b), Black),  ((b, b), White) ]
+
 
 -- Overall state is the board and whose turn it is, plus any further
 -- information about the world (this may later include, for example, player
@@ -42,10 +45,12 @@ data GameState
        = GameState { board :: Board,
                      turn :: Col }
 
+
 -- Gets the initial game state
 -- Size of the board is passed in to allow initial pieces to be positioned correctly
 initGameState :: Int -> GameState
 initGameState size = GameState (initBoard size)  Black
+
 
 -- Play a move on the board; return 'Nothing' if the move is invalid
 -- (e.g. outside the range of the board, there is a piece already there,
@@ -53,9 +58,11 @@ initGameState size = GameState (initBoard size)  Black
 makeMove :: Board -> Col -> Position -> Maybe Board
 makeMove board colour position = Just (Board (size board) 0 (addPiece (pieces board) (position, colour)))   -- << NEED TO GREATLY EXPAND
 
+
 -- Adds Piece to given list of pieces 
 addPiece :: [(Position, Col)] -> (Position, Col) -> [(Position, Col)]
 addPiece pieces piece = pieces ++ [piece] 
+
 
 -- Check the current score
 -- Returns a pair of the number of black pieces, and the number of
@@ -63,10 +70,12 @@ addPiece pieces piece = pieces ++ [piece]
 checkScore :: Board -> (Int, Int)
 checkScore = undefined
 
+
 -- Return true if the game is complete (that is, either the board is
 -- full or there have been two consecutive passes)
 gameOver :: Board -> Bool
 gameOver = undefined
+
 
 -- An evaluation function for a minimax search. Given a board and a colour
 -- return an integer indicating how good the board is for that colour.

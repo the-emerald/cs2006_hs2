@@ -47,11 +47,13 @@ addSpaces [] = []
 addSpaces (x:xs) =  x : ' ' : addSpaces xs
 
 
+-- Gets string representation of each row of the table 
 getTable :: Board -> Int -> String
 getTable board row = if (row < (size board)) then 
                         getTableRow board (range( (0, row), (size board - 1, row) )) ++ "\n" ++ getTable board (row + 1)
                       else 
                         ""
+
 
 -- Returns pieces on given row of board 
 getTableRow :: Board -> [(Int, Int)] -> String
