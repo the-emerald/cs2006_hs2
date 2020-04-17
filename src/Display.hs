@@ -68,7 +68,7 @@ getTableRow board ((xPos, yPos) : xs)
 
 
 -- Given a row and an index return either . * O 
-getCell :: (Int,Int) -> [(Position, Col)] -> Char
+getCell :: Position -> [(Position, Col)] -> Char
 getCell cell [] = '.'                                                           -- If function reaches end of list without finding match, space on board must be empty 
 getCell (xPos, yPos) (((x,y), player) : xs) = if xPos == x && yPos == y then    -- If match is found 
                                                 case player of 

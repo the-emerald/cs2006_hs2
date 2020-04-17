@@ -1,5 +1,6 @@
 module Board where
 
+
 data Col = Black | White
   deriving Show
 
@@ -57,6 +58,25 @@ initGameState size = GameState (initBoard size)  Black
 -- or the move does not flip any opposing pieces)
 makeMove :: Board -> Col -> Position -> Maybe Board
 makeMove board colour position = Just (Board (size board) 0 (addPiece (pieces board) (position, colour)))   -- << NEED TO GREATLY EXPAND
+
+checkMove board colour position = undefined
+
+
+-- Checks if entered position is on the current board
+positionOnBoard :: Board -> Position -> Bool
+positionOnBoard board (x,y)
+      | x == -1 || y == -1 = False                        -- -1 Signals error in input (See Input.hs) therefore position must be invalid
+      | x >= (size board) || y >= (size board) = False    -- If either the x or y value is greater than the size of the current board then return false
+      | x < 0 || y < 0 = False                            -- If either the x or y valud is less than the minimum possible positional value, return false 
+      | otherwise = True                                  -- Otherwise the entered position must be on the board
+
+
+-- Checks that cell is empty where piece is being placed
+cellEmpty :: [(Position, Col)]  -> Position -> Bool
+cellEmpty [] position = True                              -- If end of list is reached and no match has been found the cell must be free
+cellEmpty (((x,y), player) : xs) (xPos, yPos)             
+      | xPos == x && yPos == y = False                    -- If xPos and yPos matches then cell is populated and therefore piece cannot be placed
+      | otherwise = cellEmpty xs (xPos, yPos)             -- Keep searching through list to check for match
 
 
 -- Adds Piece to given list of pieces 
