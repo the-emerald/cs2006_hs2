@@ -94,10 +94,18 @@ addPiece :: [(Position, Col)] -> (Position, Col) -> [(Position, Col)]
 addPiece pieces piece = pieces ++ [piece] 
 
 
+-- Changes colour of piece at given position
+flipPiece :: [(Position, Col)] -> Position -> [(Position, Col)]
+flipPiece [] flipPos = []
+flipPiece ((listPos, col) : pieces) flipPos
+      | listPos == flipPos = (listPos, (other col)) : pieces
+      | otherwise = (listPos, col) : flipPiece pieces flipPos
+ 
+
 -- Check the current score
 -- Returns a pair of the number of black pieces, and the number of
 -- white pieces
---checkScore :: Board -> (Int, Int)
+checkScore :: Board -> (Int, Int)
 checkScore board = do let blackCount = length (filter (\x -> (show (snd x)) == show(Black)) (pieces board))     -- Get count for black pieces
                       let whiteCount = length (filter (\x -> (show (snd x)) == show(White)) (pieces board))     -- Get count for white pieces 
                       (blackCount, whiteCount)                                                                  -- Combine counts into (int, int) tuple
@@ -108,7 +116,7 @@ checkScore board = do let blackCount = length (filter (\x -> (show (snd x)) == s
 gameOver :: Board -> Bool
 gameOver board 
       | length (pieces board) == ((size board) * (size board)) = True     -- If the number of pieces placed is equal to the size of the board then game is over
-      | (passes board) == 2 == True                                       -- If the number of passes reaches two then game is over
+      | (passes board) == 2 = True                                       -- If the number of passes reaches two then game is over
       | otherwise = False                                                 -- Otherwise the game is not over
 
 
