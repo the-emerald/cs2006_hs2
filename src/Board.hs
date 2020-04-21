@@ -57,9 +57,15 @@ initGameState size = GameState (initBoard size)  Black
 -- (e.g. outside the range of the board, there is a piece already there,
 -- or the move does not flip any opposing pieces)
 makeMove :: Board -> Col -> Position -> Maybe Board
-makeMove board colour position = Just (Board (size board) 0 (addPiece (pieces board) (position, colour)))   -- << NEED TO GREATLY EXPAND
+makeMove board colour position = case checkMove board colour position of
+                                        True -> Just (Board (size board) 0 (addPiece (pieces board) (position, colour)))   -- << NEED TO GREATLY EXPAND
+                                        False -> Nothing
 
-checkMove board colour position = undefined
+
+-- Combines all of the checks into one, declutters makeMove method
+checkMove :: Board -> Col -> Position -> Bool
+checkMove board colour position = positionOnBoard board position 
+                                  && cellEmpty (pieces board) position
 
 
 -- Checks if entered position is on the current board
@@ -79,6 +85,10 @@ cellEmpty (((x,y), player) : xs) (xPos, yPos)
       | otherwise = cellEmpty xs (xPos, yPos)             -- Keep searching through list to check for match
 
 
+-- Check that piece creates new row of colour 
+
+
+
 -- Adds Piece to given list of pieces 
 addPiece :: [(Position, Col)] -> (Position, Col) -> [(Position, Col)]
 addPiece pieces piece = pieces ++ [piece] 
@@ -87,8 +97,10 @@ addPiece pieces piece = pieces ++ [piece]
 -- Check the current score
 -- Returns a pair of the number of black pieces, and the number of
 -- white pieces
-checkScore :: Board -> (Int, Int)
-checkScore = undefined
+--checkScore :: Board -> (Int, Int)
+checkScore board = do let blackCount = length (filter (\x -> (show (snd x)) == show(Black)) (pieces board))     -- Get count for black pieces
+                      let whiteCount = length (filter (\x -> (show (snd x)) == show(White)) (pieces board))     -- Get count for white pieces 
+                      (blackCount, whiteCount)                                                                  -- Combine counts into (int, int) tuple
 
 
 -- Return true if the game is complete (that is, either the board is
