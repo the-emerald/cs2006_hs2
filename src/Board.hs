@@ -106,7 +106,10 @@ checkScore board = do let blackCount = length (filter (\x -> (show (snd x)) == s
 -- Return true if the game is complete (that is, either the board is
 -- full or there have been two consecutive passes)
 gameOver :: Board -> Bool
-gameOver = undefined
+gameOver board 
+      | length (pieces board) == ((size board) * (size board)) = True     -- If the number of pieces placed is equal to the size of the board then game is over
+      | (passes board) == 2 == True                                       -- If the number of passes reaches two then game is over
+      | otherwise = False                                                 -- Otherwise the game is not over
 
 
 -- An evaluation function for a minimax search. Given a board and a colour
