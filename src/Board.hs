@@ -4,6 +4,14 @@ module Board where
 data Col = Black | White
   deriving Show
 
+-- Define Eq for colours to allow for == to be used
+instance Eq Col where 
+  (==) Black Black = True 
+  (==) White White = True 
+  (==) _ _ = False
+
+
+-- Swaps colour  
 other :: Col -> Col
 other Black = White
 other White = Black
@@ -47,10 +55,12 @@ data GameState
                      turn :: Col }
 
 
+
 -- Gets the initial game state
 -- Size of the board is passed in to allow initial pieces to be positioned correctly
 initGameState :: Int -> GameState
 initGameState size = GameState (initBoard size)  Black
+
 
 
 -- Play a move on the board; return 'Nothing' if the move is invalid
@@ -58,14 +68,19 @@ initGameState size = GameState (initBoard size)  Black
 -- or the move does not flip any opposing pieces)
 makeMove :: Board -> Col -> Position -> Maybe Board
 makeMove board colour position = case checkMove board colour position of
-                                        True -> Just (Board (size board) 0 (addPiece (pieces board) (position, colour)))   -- << NEED TO GREATLY EXPAND
+                                        True -> do let pieces' = map (\x -> flipPiece (getFlipList board colour position) x) (pieces board)
+                                                   Just (Board (size board) 0 (addPiece (pieces') (position, colour))) 
+                                        
                                         False -> Nothing
+
 
 
 -- Combines all of the checks into one, declutters makeMove method
 checkMove :: Board -> Col -> Position -> Bool
 checkMove board colour position = positionOnBoard board position 
                                   && cellEmpty (pieces board) position
+                                  && length (getFlipList board colour position) > 0
+
 
 
 -- Checks if entered position is on the current board
@@ -77,6 +92,7 @@ positionOnBoard board (x,y)
       | otherwise = True                                  -- Otherwise the entered position must be on the board
 
 
+
 -- Checks that cell is empty where piece is being placed
 cellEmpty :: [(Position, Col)]  -> Position -> Bool
 cellEmpty [] position = True                              -- If end of list is reached and no match has been found the cell must be free
@@ -85,7 +101,37 @@ cellEmpty (((x,y), player) : xs) (xPos, yPos)
       | otherwise = cellEmpty xs (xPos, yPos)             -- Keep searching through list to check for match
 
 
--- Check that piece creates new row of colour 
+
+-- Gets a list of pieces to be flipped in all 8 directions 
+getFlipList :: Board -> Col -> Position -> [Position]
+getFlipList board colour position  = do let directions = [(0,-1), (1,0), (0,1), (-1,0), (1,-1), (1,1), (-1,1), (-1,-1)]   -- List representing all possible directions in which tokens could be flipped
+                                        concat (map (\x -> getFlipsForDirection board colour position x []) directions)   -- Generates a list of all flippable pieces in all directions
+                                          
+
+
+-- Gets a list of pieces to be flipped in a single direction
+getFlipsForDirection :: Board -> Col -> Position -> (Int,Int) -> [Position] -> [Position]
+getFlipsForDirection board colour (x,y) (nextX, nextY) xs = do let x' = x + nextX
+                                                               let y' = y + nextY
+                                                                
+                                                               if cellEmpty (pieces board) (x', y') == False then                               -- If the next cell is not empty 
+                                                                   if (getCellColour (x',y') (pieces board) /= colour) then                     -- If the cell is of a different colour 
+                                                                       getFlipsForDirection board colour (x',y') (nextX,nextY) ((x',y') : xs)   -- Add the position to the list of positions to be flipped
+                                                                     else                                                                       -- If the cell is the same colour then all flippable pieces have been found
+                                                                       xs                                                                       -- Either an empty list will be returned or the previously discovered pieces of different colour
+                                                                 else                                                                           -- If the next cell is empty then return empty list
+                                                                   []
+
+
+
+-- Changes colour of piece if it is present in the list of pieces to be flipped
+flipPiece :: [Position] -> (Position, Col) -> (Position, Col)
+flipPiece pieces (position, colour) = do let toFlip = (filter (\x -> x == position) pieces) == [position]   -- Determines the current piece is present in the list of pieces to flip
+                                         
+                                         if toFlip then                   -- If the piece is present
+                                            (position, (other colour))    -- Flip colour and return piece
+                                          else                            -- If not present 
+                                            (position, colour)            -- return piece unchanged
 
 
 
@@ -94,21 +140,24 @@ addPiece :: [(Position, Col)] -> (Position, Col) -> [(Position, Col)]
 addPiece pieces piece = pieces ++ [piece] 
 
 
--- Changes colour of piece at given position
-flipPiece :: [(Position, Col)] -> Position -> [(Position, Col)]
-flipPiece [] flipPos = []
-flipPiece ((listPos, col) : pieces) flipPos
-      | listPos == flipPos = (listPos, (other col)) : pieces
-      | otherwise = (listPos, col) : flipPiece pieces flipPos
- 
+
+ -- Given a row and an index return the colour of piece                               -- <<< NOT VALIDATED
+getCellColour :: Position -> [(Position, Col)] -> Col                                                    
+getCellColour (xPos, yPos) (((x,y), colour) : xs) = if xPos == x && yPos == y then    
+                                                        colour           
+                                                      else 
+                                                        getCellColour (xPos, yPos) xs       
+
+
 
 -- Check the current score
 -- Returns a pair of the number of black pieces, and the number of
 -- white pieces
 checkScore :: Board -> (Int, Int)
-checkScore board = do let blackCount = length (filter (\x -> (show (snd x)) == show(Black)) (pieces board))     -- Get count for black pieces
-                      let whiteCount = length (filter (\x -> (show (snd x)) == show(White)) (pieces board))     -- Get count for white pieces 
-                      (blackCount, whiteCount)                                                                  -- Combine counts into (int, int) tuple
+checkScore board = do let blackCount = length (filter (\x -> snd x == Black) (pieces board))     -- Get count for black pieces
+                      let whiteCount = length (filter (\x -> snd x == White) (pieces board))     -- Get count for white pieces 
+                      (blackCount, whiteCount)                                                   -- Combine counts into (int, int) tuple
+
 
 
 -- Return true if the game is complete (that is, either the board is
@@ -116,8 +165,9 @@ checkScore board = do let blackCount = length (filter (\x -> (show (snd x)) == s
 gameOver :: Board -> Bool
 gameOver board 
       | length (pieces board) == ((size board) * (size board)) = True     -- If the number of pieces placed is equal to the size of the board then game is over
-      | (passes board) == 2 = True                                       -- If the number of passes reaches two then game is over
+      | (passes board) == 2 = True                                        -- If the number of passes reaches two then game is over
       | otherwise = False                                                 -- Otherwise the game is not over
+
 
 
 -- An evaluation function for a minimax search. Given a board and a colour
