@@ -1,8 +1,9 @@
 module Board where
 
-
+-- Piece Colours (Either black or white only)
 data Col = Black | White
   deriving Show
+
 
 -- Define Eq for colours to allow for == to be used
 instance Eq Col where 
@@ -11,17 +12,18 @@ instance Eq Col where
   (==) _ _ = False
 
 
--- Swaps colour  
+-- Swaps piece colour
 other :: Col -> Col
 other Black = White
 other White = Black
 
+
 type Position = (Int, Int)
 
--- A Board is a record containing the board size (a board is a square grid, n *
--- n), the number of consecutive passes, and a list of pairs of position and
--- the colour at that position.
 
+-- A Board is a record containing the board size (a board is a square grid, n * n),
+-- the number of consecutive passes, and a list of pairs of position and
+-- the colour at that position.
 data Board = Board { size :: Int,
                      passes :: Int,
                      pieces :: [(Position, Col)]
@@ -42,18 +44,11 @@ getInitialPieces size =  do let a = (size - 1) `div` 2
                               ((a, b), Black),  ((b, b), White) ]
 
 
--- Overall state is the board and whose turn it is, plus any further
--- information about the world (this may later include, for example, player
--- names, which is the computer player, timers, information about 
--- rule variants, etc)
---
--- Feel free to extend this, and 'Board' above with anything you think
--- will be useful (information for the AI, for example, such as where the
--- most recent moves were).
+-- Game State represents the entire game world. Has all of the relevant information for the game to be played
 data GameState 
-       = GameState { board :: Board,
-                     ai :: Col,
-                     turn :: Col }
+       = GameState { board :: Board,  -- Board information: Size, Passes, Pieces
+                     ai :: Col,       -- Which color is being played by the AI
+                     turn :: Col }    -- Colour of player whos turn it is
   deriving Show
 
 
@@ -70,10 +65,10 @@ initGameState size = GameState (initBoard size) White  Black
 -- or the move does not flip any opposing pieces)
 makeMove :: Board -> Col -> Position -> Maybe Board
 makeMove board colour position = case checkMove board colour position of
-                                        True -> do let pieces' = map (\x -> flipPiece (getFlipList board colour position) x) (pieces board)
-                                                   Just (Board (size board) 0 (addPiece (pieces') (position, colour))) 
+                                        True -> do let pieces' = map (\x -> flipPiece (getFlipList board colour position) x) (pieces board)     -- Gets all pieces and flipped pieces for current move
+                                                   Just (Board (size board) 0 (addPiece (pieces') (position, colour)))                          -- Returns new board: Retains board size, resets passes to 0 and updates pieces on board 
                                         
-                                        False -> Nothing
+                                        False -> Nothing                                                                                        -- If the move is invalid then return nothing to signal error
 
 
 
@@ -143,12 +138,14 @@ addPiece pieces piece = pieces ++ [piece]
 
 
 
- -- Given a row and an index return the colour of piece                               
-getCellColour :: Position -> [(Position, Col)] -> Col                                                    
-getCellColour (xPos, yPos) (((x,y), colour) : xs) = if xPos == x && yPos == y then    
-                                                        colour           
+-- Given a row and an index return the colour of piece                     
+-- This method is only used on non-empty cells. It should never reach the end of the list without finding a match      
+getCellColour :: Position -> [(Position, Col)] -> Col        
+getCellColour position [] = error "\n[INFO] Reached end of list without match. Ensure position validated (not empty) before searching for colour\n"                                           
+getCellColour (xPos, yPos) (((x,y), colour) : xs) = if xPos == x && yPos == y then      -- If the current position is equal to entered position 
+                                                        colour                          -- Return the colour of the position  
                                                       else 
-                                                        getCellColour (xPos, yPos) xs       
+                                                        getCellColour (xPos, yPos) xs   -- Otherwise keep searching through list for position. 
 
 
 

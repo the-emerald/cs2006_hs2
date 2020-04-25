@@ -11,11 +11,11 @@ gameLoop st
     | otherwise = do putStr "Move: "
                      input <- getLine
                      case nextState input st of 
-                         Left msg -> do putStrLn msg
-                                        putStrLn (showGameState st) 
-                                        gameLoop st
-                         Right st' -> do putStrLn (showGameState st') 
-                                         gameLoop st'
+                            Left msg -> do putStrLn msg
+                                           putStrLn (showGameState st) 
+                                           gameLoop st
+                            Right st' -> do putStrLn (showGameState st') 
+                                            gameLoop st'
           
 
 main :: IO ()
