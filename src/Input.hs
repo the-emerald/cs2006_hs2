@@ -5,11 +5,39 @@ import Text.Read
 
 import Board
 import AI
+import GameOptions
+
+-- Define Input Types 
+data InputType = Move | Option
+  deriving Show
+
+-- Define Eq for InputType to allow for == to be used
+instance Eq InputType where 
+  (==) Move Move = True 
+  (==) Option Option = True 
+  (==) _ _ = False
+
+
+-- Given a state, get input from getLine and return new state or user message
+nextState :: String -> GameState -> Either String GameState
+nextState input st = do if inputType input == Move then 
+                          do case makeMove (board st) (turn st) (getCoord input) of
+                               Nothing -> Left "[Move] Invalid Move"
+                               Just board' -> Right (GameState board' (ai st) (other (turn st)))
+                         else
+                          optionHandler input st
+
+
+-- Given an input string, get the type of the input
+inputType :: String -> InputType
+inputType input  
+         | snd (getCoord input) == -1 = Option
+         | fst (getCoord input) == -1 = Option
+         | otherwise = Move
+                                 
 
 -- Given an input string, convert it to a board coordinate as a pair of Ints
--- e.g. getCoord "D4" => (3,3) since coordinates are 0-based internally.
---   or getCoord "F2" => (5,1)
-getCoord :: String -> (Int, Int)
+getCoord :: String -> Position
 getCoord [] = (-1, -1)
 getCoord (x:xs) = ((charToPosition x), (parseYpos xs))
 
@@ -24,7 +52,7 @@ parseYpos pos =  case readMaybe pos :: Maybe Int of             -- Try and parse
                         Nothing -> -1                           -- If the entered string cannot be parsed as int then retunrn -1 to signal error
 
 
--- Returns correct value for a given uppercase or lowercase character
+-- Returns position value for a given uppercase or lowercase character
 charToPosition :: Char -> Int
 charToPosition char
         | ord char <= 90 && ord char >= 65 = (ord char) - 65    -- If uppercase character entered return appropriate value

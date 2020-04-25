@@ -52,14 +52,16 @@ getInitialPieces size =  do let a = (size - 1) `div` 2
 -- most recent moves were).
 data GameState 
        = GameState { board :: Board,
+                     ai :: Col,
                      turn :: Col }
+  deriving Show
 
 
 
 -- Gets the initial game state
 -- Size of the board is passed in to allow initial pieces to be positioned correctly
 initGameState :: Int -> GameState
-initGameState size = GameState (initBoard size)  Black
+initGameState size = GameState (initBoard size) White  Black
 
 
 
@@ -141,7 +143,7 @@ addPiece pieces piece = pieces ++ [piece]
 
 
 
- -- Given a row and an index return the colour of piece                               -- <<< NOT VALIDATED
+ -- Given a row and an index return the colour of piece                               
 getCellColour :: Position -> [(Position, Col)] -> Col                                                    
 getCellColour (xPos, yPos) (((x,y), colour) : xs) = if xPos == x && yPos == y then    
                                                         colour           
