@@ -31,7 +31,7 @@ data Board = Board { size :: Int,
   deriving Show
 
 
--- Default board is 8x8, neither played has passed, with 4 initial pieces 
+-- Initial board of specified size, neither player has passed and 4 initial pieces are placed 
 initBoard :: Int -> Board
 initBoard size = Board size 0 (getInitialPieces size)
 
