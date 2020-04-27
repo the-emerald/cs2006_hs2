@@ -9,7 +9,7 @@ import Board
 moveHandler :: String -> GameState -> Either String GameState
 moveHandler move st = case makeMove (board st) (turn st) (getCoord move) of
                                Nothing -> Left "[Move] Invalid Move"
-                               Just board' -> Right (GameState board' (ai st) (other (turn st)))
+                               Just board' -> Right (GameState board' st True (ai st) (other (turn st)))
 
 
 -- Given an input string, convert it to a board coordinate as a pair of Ints
@@ -31,6 +31,5 @@ parseYpos pos =  case readMaybe pos :: Maybe Int of             -- Try and parse
 -- Returns position value for a given uppercase or lowercase character
 charToPosition :: Char -> Int
 charToPosition char
-        | ord char <= 90 && ord char >= 65 = (ord char) - 65    -- If uppercase character entered return appropriate value
         | ord char <= 122 && ord char >= 97 = (ord char) - 97   -- If lowercase character entered return appropriate value 
         | otherwise = -1                                        -- Return -1 to signal error as entered character is not in a valid range                              

@@ -47,16 +47,17 @@ getInitialPieces size =  do let a = (size - 1) `div` 2
 -- Game State represents the entire game world. Has all of the relevant information for the game to be played
 data GameState 
        = GameState { board :: Board,  -- Board information: Size, Passes, Pieces
+                     previous :: GameState,
+                     canUndo :: Bool,
                      ai :: Col,       -- Which color is being played by the AI
                      turn :: Col }    -- Colour of player whos turn it is
   deriving Show
 
 
 
--- Gets the initial game state
--- Size of the board is passed in to allow initial pieces to be positioned correctly
-initGameState :: Int -> GameState
-initGameState size = GameState (initBoard size) White  Black
+-- Default Game State
+defaultGameState :: GameState
+defaultGameState = GameState (initBoard 8) undefined False White Black
 
 
 

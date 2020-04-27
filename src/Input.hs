@@ -1,5 +1,7 @@
 module Input where
 
+import Data.Char
+
 import GameOptions
 import Move
 import Board
@@ -31,5 +33,8 @@ inputType input
          | snd (getCoord input) == -1 = Option
          | fst (getCoord input) == -1 = Option
          | otherwise = Move
-                                 
 
+
+-- Converts uppercase characters in a string to lower case characters
+lowerStr :: String -> String 
+lowerStr input = map toLower input
