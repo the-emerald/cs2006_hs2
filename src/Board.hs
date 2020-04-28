@@ -25,6 +25,7 @@ type Position = (Int, Int)
 -- the number of consecutive passes, and a list of pairs of position and
 -- the colour at that position.
 data Board = Board { size :: Int,
+                     asp :: Bool,                     
                      passes :: Int,
                      pieces :: [(Position, Col)]
                    }
@@ -32,8 +33,11 @@ data Board = Board { size :: Int,
 
 
 -- Initial board of specified size, neither player has passed and 4 initial pieces are placed 
-initBoard :: Int -> Board
-initBoard size = Board size 0 (getInitialPieces size)
+initBoard :: Int -> Bool -> Board
+initBoard size asp = Board size asp 0 (getInitialPieces size)
+
+otherAsp :: Board -> Board
+otherAsp board = initBoard (size board) (not(asp board))
 
 
 -- Gets the position of the first four starter pieces based on the board size 
@@ -57,7 +61,7 @@ data GameState
 
 -- Default Game State
 defaultGameState :: GameState
-defaultGameState = GameState (initBoard 8) undefined False White Black
+defaultGameState = GameState (initBoard 8 False) undefined False White Black
 
 
 
@@ -67,7 +71,7 @@ defaultGameState = GameState (initBoard 8) undefined False White Black
 makeMove :: Board -> Col -> Position -> Maybe Board
 makeMove board colour position = case checkMove board colour position of
                                         True -> do let pieces' = map (\x -> flipPiece (getFlipList board colour position) x) (pieces board)     -- Gets all pieces and flipped pieces for current move
-                                                   Just (Board (size board) 0 (addPiece (pieces') (position, colour)))                          -- Returns new board: Retains board size, resets passes to 0 and updates pieces on board 
+                                                   Just (Board (size board) (asp board) 0 (addPiece (pieces') (position, colour)))                          -- Returns new board: Retains board size, resets passes to 0 and updates pieces on board 
                                         
                                         False -> Nothing                                                                                        -- If the move is invalid then return nothing to signal error
 
@@ -75,10 +79,12 @@ makeMove board colour position = case checkMove board colour position of
 
 -- Combines all of the checks into one, declutters makeMove method
 checkMove :: Board -> Col -> Position -> Bool
-checkMove board colour position = positionOnBoard board position 
-                                  && cellEmpty (pieces board) position
-                                  && length (getFlipList board colour position) > 0
-
+checkMove board colour position 
+      | (asp board) && (length (pieces board)) < 6 = positionOnBoard board position 
+                                                     && cellEmpty (pieces board) position
+      | otherwise = positionOnBoard board position 
+                    && cellEmpty (pieces board) position
+                    && length (getFlipList board colour position) > 0
 
 
 -- Checks if entered position is on the current board
