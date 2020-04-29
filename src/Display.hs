@@ -8,7 +8,7 @@ import Data.Ix
 -- Given a game state, return a String which represents the state of the
 -- board.
 showGameState :: GameState -> String
-showGameState g = headSpace (board g) ++ getHeader (size (board g)) ++ "\n" ++ getTable (board g) 0
+showGameState g = "\n" ++ headSpace (board g) ++ getHeader (size (board g)) ++ "\n" ++ getTable (board g) 0
 
 
 -- Returns letters for top of board

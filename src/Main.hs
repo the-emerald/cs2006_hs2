@@ -11,7 +11,7 @@ import AI
 gameLoop :: GameState -> IO ()
 gameLoop st
     | gameOver (board st) = putStrLn "[INFO] Game Over"                                     -- If the game over detected then end the game
-    | otherwise = do putStr "Move: "                                                        -- Otherwise ask the user to enter a move (can also be a game option such as 'settings' or 'pass')
+    | otherwise = do putStr ("[" ++ show(turn st) ++ "] Move: ")                            -- Otherwise ask the user to enter a move (can also be a game option such as 'settings' or 'pass')
                      input <- getLine
                      let input' = lowerStr input                                            -- Convert input to lower case
                      case input' of                                                     
@@ -53,9 +53,9 @@ main = do putStrLn "---------- Welcome to Othello ----------"
           let args' = map lowerStr args                                                         -- Convert the arguments to lower case strings. Using map to apply function to each string in list of strings
           case initGameState args' of                                                           -- Try to initialise game from the arguments given 
               Left msg -> do putStrLn msg                                                       -- If game state couldnt be created from arguments, return meaningful message 
-                             putStrLn "[INFO] Default board used\n"                             -- Run game with default board and inform the user that this is the case
+                             putStrLn "[INFO] Default board used"                               -- Run game with default board and inform the user that this is the case
                              putStrLn (showGameState defaultGameState)
                              gameLoop (defaultGameState)
-              Right st -> do putStrLn "[INFO] Board created with command line arguments\n"      -- If game could be created with command line arguments then inform the user 
+              Right st -> do putStrLn "[INFO] Board created with command line arguments"        -- If game could be created with command line arguments then inform the user 
                              putStrLn (showGameState st)                                        -- show board 
                              gameLoop (st)                                                      -- start game loop and ask for next move

@@ -39,7 +39,7 @@ changeASP st = GameState (otherAsp (board st))  -- Reset board with alternative 
 -- If an invalid size is entered an error message is returned 
 changeBoardSize :: String -> GameState -> Either String GameState
 changeBoardSize size st = case getSize size of 
-                              Nothing -> Left "[ERROR] Invalid Size Entered"
+                              Nothing -> Left "[ERROR] Invalid Size Entered. Range 4-26. Even Only"
                               Just x -> Right (GameState (initBoard x (asp (board st))) undefined False (ai st) (turn st))
 
 
@@ -71,13 +71,13 @@ undo st
 -- Inititates the game state with the user entered arguments
 initGameState :: [String] -> Either String GameState
 initGameState args 
-            | length args == 0 = Left "[INFO] No command line arguments were detected"                                        -- If no arguments were entered, return an error message
-            | length args /= 3 = Left ("[ERROR] An invalid number of arguments were entered (" ++ show(length args) ++ ")")   -- If invalid number of arguments entered then reurn another meaningful message
-            | otherwise = do let size = getSize (args!!0)                                                                     -- At this point it is safe to extract the values from the arguments 
-                             let ai = getColour (args!!1)                                                                     -- The arguments are parsed using their respective parsing function
+            | length args == 0 = Left "[INFO] No command line arguments were detected"                                              -- If no arguments were entered, return an error message
+            | length args /= 3 = Left ("[ERROR] An invalid number of arguments were entered (" ++ show(length args) ++ ")" ++ usg)  -- If invalid number of arguments entered then reurn another meaningful message
+            | otherwise = do let size = getSize (args!!0)                                                                           -- At this point it is safe to extract the values from the arguments 
+                             let ai = getColour (args!!1)                                                                           -- The arguments are parsed using their respective parsing function
                              let asp = getASP (args!!2)
-                             if size == Nothing || ai == Nothing || asp == Nothing then                                       -- If parsing failed for any of the arguments, or invalid input given 
-                                 Left "[ERROR] Could not initialise board with given arguments"                               -- Another meningful message is returned
+                             if size == Nothing || ai == Nothing || asp == Nothing then                                             -- If parsing failed for any of the arguments, or invalid input given 
+                                 Left ("[ERROR] Could not initialise board with given arguments" ++ usg)                            -- Another meningful message is returned
                               else 
                                  do let getVal = (\(Just x) -> x)                                                             -- Function declared to extract value from maybe value
                                     let size' = getVal size                                                                   -- As parsing was proven to be succesfull for all methods
@@ -89,7 +89,7 @@ initGameState args
 -- Parses the entered board size
 getSize :: String -> Maybe Int 
 getSize size = case readMaybe size :: Maybe Int of
-                        Just x -> do if x > 0 && x < 27 then
+                        Just x -> do if x > 3 && x < 27 && (x `mod` 2 == 0) then    -- Size is valid if the number is between 4 and 26 and even (board must be square)
                                          Just x
                                       else
                                          Nothing
@@ -110,3 +110,11 @@ getASP asp = case asp of
                "true" -> Just True 
                "false" -> Just False 
                _ -> Nothing
+
+
+-- Usage message. Helps to main readability by making it its own function
+usg :: String
+usg = "\n[USAGE] :main <Board Size> <AI Player> <ASP Enabled>" ++
+      "\n\t- Board Size:  (Int)  Range 4-26. Must be an even number." ++
+      "\n\t- AI Player:   (Col)  Black or White only." ++
+      "\n\t- ASP Enabled: (Bool) True or False Only."
