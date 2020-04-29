@@ -22,6 +22,7 @@ type Position = (Int, Int)
 
 
 -- A Board is a record containing the board size (a board is a square grid, n * n),
+-- Whether or not the first two moves can be at any position on the board (asp)
 -- the number of consecutive passes, and a list of pairs of position and
 -- the colour at that position.
 data Board = Board { size :: Int,
@@ -32,10 +33,13 @@ data Board = Board { size :: Int,
   deriving Show
 
 
--- Initial board of specified size, neither player has passed and 4 initial pieces are placed 
+-- Initial board of specified size, neither player has passed, 4 initial pieces are placed 
+-- and there is no possibility for alternative starting positions 
 initBoard :: Int -> Bool -> Board
 initBoard size asp = Board size asp 0 (getInitialPieces size)
 
+
+-- Changes 'alternative starting positions' value and returns new board
 otherAsp :: Board -> Board
 otherAsp board = initBoard (size board) (not(asp board))
 
@@ -50,16 +54,17 @@ getInitialPieces size =  do let a = (size - 1) `div` 2
 
 -- Game State represents the entire game world. Has all of the relevant information for the game to be played
 data GameState 
-       = GameState { board :: Board,  -- Board information: Size, Passes, Pieces
-                     previous :: GameState,
-                     canUndo :: Bool,
-                     ai :: Col,       -- Which color is being played by the AI
-                     turn :: Col }    -- Colour of player whos turn it is
+       = GameState { board :: Board,          -- Board information: Size, Passes, Pieces
+                     previous :: GameState,   -- Previous game state (used when undoing a move)
+                     canUndo :: Bool,         -- Used to determine whether or not a move can be undone 
+                     ai :: Col,               -- Which color is being played by the AI
+                     turn :: Col }            -- Colour of player whos turn it is
   deriving Show
 
 
-
 -- Default Game State
+-- This consists of the default 8x8 board, no previous move, no possibility of undoing a move, 
+-- white as the ai player and black as the starting turn 
 defaultGameState :: GameState
 defaultGameState = GameState (initBoard 8 False) undefined False White Black
 
@@ -71,7 +76,7 @@ defaultGameState = GameState (initBoard 8 False) undefined False White Black
 makeMove :: Board -> Col -> Position -> Maybe Board
 makeMove board colour position = case checkMove board colour position of
                                         True -> do let pieces' = map (\x -> flipPiece (getFlipList board colour position) x) (pieces board)     -- Gets all pieces and flipped pieces for current move
-                                                   Just (Board (size board) (asp board) 0 (addPiece (pieces') (position, colour)))                          -- Returns new board: Retains board size, resets passes to 0 and updates pieces on board 
+                                                   Just (Board (size board) (asp board) 0 (addPiece (pieces') (position, colour)))              -- Returns new board: Retains board size, resets passes to 0 and updates pieces on board 
                                         
                                         False -> Nothing                                                                                        -- If the move is invalid then return nothing to signal error
 
@@ -80,11 +85,14 @@ makeMove board colour position = case checkMove board colour position of
 -- Combines all of the checks into one, declutters makeMove method
 checkMove :: Board -> Col -> Position -> Bool
 checkMove board colour position 
-      | (asp board) && (length (pieces board)) < 6 = positionOnBoard board position 
-                                                     && cellEmpty (pieces board) position
-      | otherwise = positionOnBoard board position 
-                    && cellEmpty (pieces board) position
-                    && length (getFlipList board colour position) > 0
+      -- Allows for alternative starting positions
+      | (asp board) && (length (pieces board)) < 6 = positionOnBoard board position         -- If alternative starting positions are enabled, if less than 6 pieces are on the board (4 starting + 2 first moves)        
+                                                     && cellEmpty (pieces board) position   -- Check that the piece is on the board and that the cell is empty
+      -- Standard checks which ensure that pieces are flipped
+      | otherwise = positionOnBoard board position                      -- For normal moves: If the position is on the board
+                    && cellEmpty (pieces board) position                -- If the cell is empty 
+                    && length (getFlipList board colour position) > 0   -- If a piece is flipped. Move is valid
+
 
 
 -- Checks if entered position is on the current board
