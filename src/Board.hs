@@ -1,5 +1,7 @@
 module Board where
 
+import Data.Ix
+
 -- Piece Colours (Either black or white only)
 data Col = Black | White
   deriving Show
@@ -183,9 +185,20 @@ gameOver board
       | otherwise = False                                                 -- Otherwise the game is not over
 
 
--- Gets all valid moves for a given colour
---getValidMoves :: Board -> Col -> [Position]
---getvalidMoves =  
+
+-- Gets all valid moves for a given board and colour
+-- Calls validMoves function. Reduces overall clutter when getting valid moves as
+-- only the board and colour have to be given
+getValidMoves :: Board -> Col -> [Position]
+getValidMoves board colour = validMoves board Black (range ((0,0),(7,7)))
+
+
+-- Gets all valid moves for a given colour and list of positions
+validMoves :: Board -> Col -> [Position] -> [Position]
+validMoves board colour [] = []
+validMoves board colour (x:xs) = case checkMove board colour x of 
+                                        False -> validMoves board colour xs
+                                        True -> x:(validMoves board colour xs)
 
 
 -- An evaluation function for a minimax search. Given a board and a colour
