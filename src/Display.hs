@@ -8,7 +8,7 @@ import Data.Ix
 -- Given a game state, return a String which represents the state of the
 -- board.
 showGameState :: GameState -> String
-showGameState g = "\n" ++ headSpace (board g) ++ getHeader (size (board g)) ++ "\n" ++ getTable (board g) 0
+showGameState g = "\n" ++ headSpace (board g) ++ getHeader (size (board g)) ++ (stringScore (checkScore (board g))) ++ "\n" ++ getTable (board g) 0
 
 
 -- Returns letters for top of board
@@ -59,3 +59,8 @@ getCell (xPos, yPos) (((x,y), player) : xs) = if xPos == x && yPos == y then    
                                                   White -> 'W'                  -- If the player colour is white return white piece 
                                                else 
                                                   getCell (xPos, yPos) xs       -- Keep searching until end of list for a matching piece
+
+
+-- Returns string containing black and white scores
+stringScore :: (Int, Int) -> String 
+stringScore (x,y) = ("\tScore : Black: " ++ show(x) ++ "  White: " ++ show(y))

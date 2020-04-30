@@ -183,6 +183,10 @@ gameOver board
       | otherwise = False                                                 -- Otherwise the game is not over
 
 
+-- Gets all valid moves for a given colour
+--getValidMoves :: Board -> Col -> [Position]
+--getvalidMoves =  
+
 
 -- An evaluation function for a minimax search. Given a board and a colour
 -- return an integer indicating how good the board is for that colour.
