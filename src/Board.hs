@@ -255,8 +255,23 @@ evaluateCornersCaptured :: Board -> Col -> Int
 evaluateCornersCaptured b c = 25 * (maxC - minC)
   where
     corners = [(0, 0), (0, 7), (7, 0), (7, 7)]
-    maxC = length (filter (\x -> getCellColour x (pieces b) == c) (filter (cellEmpty (pieces b)) corners))
-    minC = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (cellEmpty (pieces b)) corners))
+    -- Filter by not empty, and then filter by cell colour
+    maxC = length (filter (\x -> getCellColour x (pieces b) == c) (filter (not . cellEmpty (pieces b)) corners))
+    minC = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (not . cellEmpty (pieces b)) corners))
+
+-- Karti: Close corners (l)
+evaluateCornerCloseness :: Board -> Col -> Int
+evaluateCornerCloseness b c = -12 * (maxL - minL)
+  where
+    -- The head of each sublist is the corner, and the tail is the neighbours
+    closeCorners =
+      [ [(0, 0), (0, 1), (1, 1), (1, 0)]
+      , [(0, 7), (0, 6), (1, 6), (1, 7)]
+      , [(7, 0), (7, 1), (6, 1), (6, 0)]
+      , [(7, 7), (6, 7), (6, 6), (7, 6)]
+      ]
+    maxL = length (filter (\x -> getCellColour x (pieces b) == c) (filter (not . cellEmpty (pieces b)) (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
+    minL = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (not . cellEmpty (pieces b)) (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
 
 -- 5.1.4: Stability
 evaluateStability :: Board -> Col -> Int
@@ -265,7 +280,3 @@ evaluateStability = undefined
 --evaluateCornerOccupancy :: Board -> Col -> Int
 --evaluateCornerOccupancy = undefined
 --
---evaluateCornerCloseness :: Board -> Col -> Int
---evaluateCornerCloseness = undefined
---
-
