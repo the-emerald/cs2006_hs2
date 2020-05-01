@@ -21,10 +21,10 @@ instance Eq InputType where
 
 -- Given a state, get input from getLine and return new state or user message
 nextState :: String -> GameState -> Either String GameState
-nextState input st = do if inputType input == Move then 
-                          moveHandler input st
-                         else
-                          optionHandler input st
+nextState input st =
+  if inputType input == Move
+    then moveHandler input st
+    else optionHandler input st
 
 
 -- Given an input string, get the type of the input
@@ -39,4 +39,4 @@ inputType input
 -- This allows the users to input both uppercase and lowercase characters without the program
 -- invalidating their input. 
 lowerStr :: String -> String 
-lowerStr input = map toLower input
+lowerStr = map toLower
