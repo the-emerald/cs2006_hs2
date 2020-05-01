@@ -244,38 +244,40 @@ evaluateCornersCaptured b c = 25 * (maxC - minC)
     -- Filter by not empty, and then filter by cell colour
     maxC = length (filter (\x -> getCellColour x (pieces b) == c) (filter (not . cellEmpty (pieces b)) corners))
     minC = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (not . cellEmpty (pieces b)) corners))
-    
+
 -- 5.1.4: Stability
 evaluateStability :: Board -> Col -> Int
 evaluateStability b c =
   stability
   where
---    stabilityConstants :: Array (Int, Int) Int
---    stabilityConstants = listArray ((0, 0), (7, 7)) $ concat [
---            [20, -3, 11, 8, 8, 11, -3, 20],
---            [-3, -7, -4, 1, 1, -4, -7, -3],
---            [11, -4, 2, 2, 2, 2, -4, 11],
---            [8, 1, 2, -3, -3, 2, 1, 8],
---            [8, 1, 2, -3, -3, 2, 1, 8],
---            [11, -4, 2, 2, 2, 2, -4, 11],
---            [-3, -7, -4, 1, 1, -4, -7, -3],
---            [20, -3, 11, 8, 8, 11, -3, 20]]
     stability = 5
-    
+
 
 -- Karti: Close corners (l)
 evaluateCornerCloseness :: Board -> Col -> Int
 evaluateCornerCloseness b c = -12 * (maxL - minL)
-  where
     -- The head of each sublist is the corner, and the tail is the neighbours
+  where
     closeCorners =
       [ [(0, 0), (0, 1), (1, 1), (1, 0)]
-      , [(0, 7), (0, 6), (1, 6), (1, 7)]
-      , [(7, 0), (7, 1), (6, 1), (6, 0)]
-      , [(7, 7), (6, 7), (6, 6), (7, 6)]
+      , [(0, size b), (0, size b - 1), (1, size b - 1), (1, size b)]
+      , [(size b, 0), (size b, 1), (size b - 1, 1), (size b - 1, 0)]
+      , [(size b, size b), (size b - 1, size b), (size b - 1, size b - 1), (size b, size b - 1)]
       ]
-    maxL = length (filter (\x -> getCellColour x (pieces b) == c) (filter (not . cellEmpty (pieces b)) (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
-    minL = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (not . cellEmpty (pieces b)) (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
+    maxL =
+      length
+        (filter
+           (\x -> getCellColour x (pieces b) == c)
+           (filter
+              (not . cellEmpty (pieces b))
+              (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
+    minL =
+      length
+        (filter
+           (\x -> getCellColour x (pieces b) == other c)
+           (filter
+              (not . cellEmpty (pieces b))
+              (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
 
 -- Karti: Frontier tiles (L93) (f)
 evaluateFront :: Board -> Col -> Int
