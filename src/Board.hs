@@ -204,11 +204,13 @@ validMoves board colour (x:xs) = case checkMove board colour x of
 
 -- An evaluation function for a minimax search. Given a board and a colour
 -- return an integer indicating how good the board is for that colour.
+
+-- Sannidhanam, V., & Annamalai, M. (2015). An Analysis of Heuristics in Othello.
+-- and https://kartikkukreja.wordpress.com/2013/03/30/heuristic-function-for-reversiothello/
 evaluate :: Board -> Col -> Int
 evaluate b c =
-  (10*p) + (801*c) + (382*l) + (79*m) + (74*f) + (10*d)
+  (parity * 25)
   where
-    -- Sannidhanam, V., & Annamalai, M. (2015). An Analysis of Heuristics in Othello.
     values :: Array (Int, Int) Int
     values = listArray ((0, 0), (7, 7)) $ concat [[4, -3, 2, 2, 2, 2, -3, 4],
             [-3, -4, -1, -1, -1, -1, -4, -3],
@@ -219,10 +221,51 @@ evaluate b c =
             [-3, -4, -1, -1, -1, -1, -4, -3],
             [4, -3, 2, 2, 2, 2, -3, 4]]
 
-    p = 69 -- replace me
-    c = 69
-    l = 69
-    m = 69
-    f = 69
+    parity = 69 -- replace me
+    cornerOccupancy = 69
+    cornerCloseness = 69
+    mobility = 69
+    frontTiles = 69
     d = 69
+
+-- 5.1.1: Coin Parity (p)
+evaluateParity :: Board -> Col -> Int
+evaluateParity b c =
+  100 * (maxP - minP) `div` (maxP + minP)
+  where
+    maxP = length (filter (\x -> snd x == c) (pieces b))
+    minP = length (filter (\x -> snd x == other c) (pieces b))
+
+-- Karti: Front tiles (L93) (f)
+evaluateFront :: Board -> Col -> Int
+evaluateFront b c = undefined
+
+-- 5.1.2: Mobility (m)
+evaluateMobility :: Board -> Col -> Int
+evaluateMobility b c=
+  if (maxM + minM) /= 0
+    then 100 * (maxM - minM) `div` (maxM + minM)
+    else 0
+  where
+    maxM = length (getValidMoves b c)
+    minM = length (getValidMoves b (other c))
+
+-- 5.1.3: Corners Captured (c)
+evaluateCornersCaptured :: Board -> Col -> Int
+evaluateCornersCaptured b c = 25 * (maxC - minC)
+  where
+    corners = [(0, 0), (0, 7), (7, 0), (7, 7)]
+    maxC = length (filter (\x -> getCellColour x (pieces b) == c) (filter (cellEmpty (pieces b)) corners))
+    minC = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (cellEmpty (pieces b)) corners))
+
+-- 5.1.4: Stability
+evaluateStability :: Board -> Col -> Int
+evaluateStability = undefined
+
+--evaluateCornerOccupancy :: Board -> Col -> Int
+--evaluateCornerOccupancy = undefined
+--
+--evaluateCornerCloseness :: Board -> Col -> Int
+--evaluateCornerCloseness = undefined
+--
 
