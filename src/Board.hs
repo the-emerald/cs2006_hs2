@@ -242,7 +242,7 @@ evaluateMobility b c=
 evaluateCornersCaptured :: Board -> Col -> Int
 evaluateCornersCaptured b c = 25 * (maxC - minC)
   where
-    corners = [(0, 0), (0, 7), (7, 0), (7, 7)]
+    corners = [(0, 0), (0, size b), (size b, 0), (size b, size b)]
     -- Filter by not empty, and then filter by cell colour
     maxC = length (filter (\x -> getCellColour x (pieces b) == c) (filter (not . cellEmpty (pieces b)) corners))
     minC = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (not . cellEmpty (pieces b)) corners))
