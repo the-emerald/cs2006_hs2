@@ -2,6 +2,8 @@ module Board where
 
 import Data.Ix
 import Data.Array.IArray
+import Data.List.NonEmpty (nub)
+import Data.List (nubBy)
 
 -- Piece Colours (Either black or white only)
 data Col = Black | White
@@ -246,12 +248,14 @@ evaluateCornersCaptured b c = 25 * (maxC - minC)
     minC = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (not . cellEmpty (pieces b)) corners))
 
 -- 5.1.4: Stability
+-- TODO: Not sure how to calculate this!
 evaluateStability :: Board -> Col -> Int
-evaluateStability b c =
-  stability
+evaluateStability b c = stability
   where
+    oc = other c
+    unstablePieces =
+      length (nubBy (\x y -> fst x == fst y && snd x == snd y) (concatMap (getFlipList b oc) (getValidMoves b oc)))
     stability = 5
-
 
 -- Karti: Close corners (l)
 evaluateCornerCloseness :: Board -> Col -> Int
