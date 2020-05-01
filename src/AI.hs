@@ -21,8 +21,9 @@ buildTree :: (Board -> Col -> [Position]) -- ^ Move generator
              -> Board -- ^ board state
              -> Col -- ^ player to play next
              -> GameTree
-buildTree gen b c = let moves = gen b c in -- generated moves
-                        GameTree b c (mkNextStates moves)
+buildTree gen b c =
+  let moves = gen b c in -- generated moves
+    GameTree b c (mkNextStates moves)
   where
     mkNextStates :: [Position] -> [(Position, GameTree)]
     mkNextStates [] = []
@@ -32,6 +33,14 @@ buildTree gen b c = let moves = gen b c in -- generated moves
                Just b' -> (pos, buildTree gen b' (other c)) : mkNextStates xs
                              -- successful, make move and build tree from 
                              -- here for opposite player
+
+-- Generate some set of "good" moves given the Board and Col
+generateMove :: Board -> Col -> [Position]
+generateMove b c =
+  tail moves
+  where
+    moves = getValidMoves b c
+
 
 -- Get the best next move from a (possibly infinite) game tree. This should
 -- traverse the game tree up to a certain depth, and pick the move which
