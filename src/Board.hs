@@ -211,16 +211,6 @@ evaluate :: Board -> Col -> Int
 evaluate b c =
   (parity * 25)
   where
-    values :: Array (Int, Int) Int
-    values = listArray ((0, 0), (7, 7)) $ concat [[4, -3, 2, 2, 2, 2, -3, 4],
-            [-3, -4, -1, -1, -1, -1, -4, -3],
-            [2, -1, 1, 0 ,0, 1, -1, 2],
-            [2, -1, 0, 1, 1, 0, -1, 2],
-            [2, -1, 0, 1, 1, 0, -1, 2],
-            [2, -1, 1, 0 ,0, 1, -1, 2],
-            [-3, -4, -1, -1, -1, -1, -4, -3],
-            [4, -3, 2, 2, 2, 2, -3, 4]]
-
     parity = 69 -- replace me
     cornerOccupancy = 69
     cornerCloseness = 69
@@ -235,10 +225,6 @@ evaluateParity b c =
   where
     maxP = length (filter (\x -> snd x == c) (pieces b))
     minP = length (filter (\x -> snd x == other c) (pieces b))
-
--- Karti: Front tiles (L93) (f)
-evaluateFront :: Board -> Col -> Int
-evaluateFront b c = undefined
 
 -- 5.1.2: Mobility (m)
 evaluateMobility :: Board -> Col -> Int
@@ -258,6 +244,24 @@ evaluateCornersCaptured b c = 25 * (maxC - minC)
     -- Filter by not empty, and then filter by cell colour
     maxC = length (filter (\x -> getCellColour x (pieces b) == c) (filter (not . cellEmpty (pieces b)) corners))
     minC = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (not . cellEmpty (pieces b)) corners))
+    
+-- 5.1.4: Stability
+evaluateStability :: Board -> Col -> Int
+evaluateStability b c =
+  stability
+  where
+--    stabilityConstants :: Array (Int, Int) Int
+--    stabilityConstants = listArray ((0, 0), (7, 7)) $ concat [
+--            [20, -3, 11, 8, 8, 11, -3, 20],
+--            [-3, -7, -4, 1, 1, -4, -7, -3],
+--            [11, -4, 2, 2, 2, 2, -4, 11],
+--            [8, 1, 2, -3, -3, 2, 1, 8],
+--            [8, 1, 2, -3, -3, 2, 1, 8],
+--            [11, -4, 2, 2, 2, 2, -4, 11],
+--            [-3, -7, -4, 1, 1, -4, -7, -3],
+--            [20, -3, 11, 8, 8, 11, -3, 20]]
+    stability = 5
+    
 
 -- Karti: Close corners (l)
 evaluateCornerCloseness :: Board -> Col -> Int
@@ -273,10 +277,6 @@ evaluateCornerCloseness b c = -12 * (maxL - minL)
     maxL = length (filter (\x -> getCellColour x (pieces b) == c) (filter (not . cellEmpty (pieces b)) (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
     minL = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (not . cellEmpty (pieces b)) (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
 
--- 5.1.4: Stability
-evaluateStability :: Board -> Col -> Int
-evaluateStability = undefined
-
---evaluateCornerOccupancy :: Board -> Col -> Int
---evaluateCornerOccupancy = undefined
---
+-- Karti: Frontier tiles (L93) (f)
+evaluateFront :: Board -> Col -> Int
+evaluateFront b c = undefined
