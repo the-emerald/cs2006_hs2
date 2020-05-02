@@ -76,20 +76,14 @@ initGameState args
   | null args = Left "[INFO] No command line arguments were detected" -- If no arguments were entered, return an error message
   | length args /= 3 =
     Left ("[ERROR] An invalid number of arguments were entered (" ++ show (length args) ++ ")" ++ usg) -- If invalid number of arguments entered then reurn another meaningful message
-  -- TODO: Refactor this to use less do-s
-  | otherwise = do
-    let size = getSize (head args) -- At this point it is safe to extract the values from the arguments
-    let ai = getColour (args !! 1) -- The arguments are parsed using their respective parsing function
-    let asp = getASP (args !! 2)
-    if isNothing size || isNothing ai || isNothing asp -- If parsing failed for any of the arguments, or invalid input given
-      then Left ("[ERROR] Could not initialise board with given arguments" ++ usg) -- Another meningful message is returned
-      else do
-        let getVal (Just x) = x
-        let size' = getVal size
-        let ai' = getVal ai
-        let asp' = getVal asp
-        Right (GameState (initBoard size' asp') undefined False ai' (other ai'))                  -- New state is returned with command line options present
-
+  | otherwise = 
+    case (size, ai, asp) of
+      (Just sz, Just ai, Just as) -> Right (GameState (initBoard sz as) undefined False ai (other ai))
+      (_, _, _) -> Left ("[ERROR] Could not initialise board with given arguments" ++ usg)
+    where
+      size = getSize (head args)
+      ai = getColour (args !! 1)
+      asp = getASP (args !! 2)
 
 -- Parses the entered board size
 getSize :: String -> Maybe Int 
