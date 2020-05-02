@@ -37,9 +37,9 @@ buildTree gen b c =
 -- Generate some set of "good" moves given the Board and Col
 generateMove :: Board -> Col -> [Position]
 generateMove b c =
-  tail moves
-  where
-    moves = getValidMoves b c
+  filter (\x -> case makeMove b c x of
+    Just ok -> evaluate ok c > 0
+    Nothing -> False) (getValidMoves b c)
 
 
 -- Get the best next move from a (possibly infinite) game tree. This should
