@@ -39,7 +39,7 @@ buildTree gen b c =
 generateMove :: Board -> Col -> [Position]
 generateMove b c =
   filter (\x -> case makeMove b c x of
-    Just ok -> evaluate ok c > 0
+    Just ok -> abs (evaluate ok c) > 0
     Nothing -> False) (getValidMoves b c)
 
 
@@ -50,12 +50,13 @@ generateMove b c =
 getBestMove :: Int -- ^ Maximum search depth
                -> GameTree -- ^ Initial game tree
                -> Position
-getBestMove md (GameTree bd cl nxs) = fst (maximumBy (\x y -> compare (minimax md (snd x)) (minimax md (snd y))) nxs)
+getBestMove _ (GameTree _ _ []) = error "It's empty, yo!"
+getBestMove md (GameTree bd cl nxs) = fst (maximumBy (\x y -> compare (minimax md x) (minimax md y)) nxs)
   where
-    minimax :: Int -> GameTree -> Int
-    minimax 0 (GameTree b c _) = evaluate b c
-    minimax _ (GameTree b c []) = evaluate b c
-    minimax ply (GameTree b c ts) = maximum (map (minimax (ply - 1) . snd) ts)
+    minimax :: Int -> (Position, GameTree) -> Int
+    minimax 0 (_, GameTree b c _) = evaluate b c
+    minimax _ (_, GameTree b c []) = evaluate b c
+    minimax ply (_, GameTree b c ts) = maximum (map (minimax (ply - 1)) ts)
 
 -- Update the world state after some time has passed
 updateGameState :: GameState -- ^ current game state
