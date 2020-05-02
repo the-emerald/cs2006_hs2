@@ -215,14 +215,15 @@ validMoves board colour (x:xs) =
 -- Sannidhanam, V., & Annamalai, M. (2015). An Analysis of Heuristics in Othello.
 -- and https://kartikkukreja.wordpress.com/2013/03/30/heuristic-function-for-reversiothello/
 evaluate :: Board -> Col -> Int
-evaluate b c = parity * 25
+evaluate b c = 
+  (par * 25) + (mob * 5) + (coCap * 15) + (stability * 25) + (coClo * 15) + (front * 5)
   where
-    parity = 69 -- replace me
-    cornerOccupancy = 69
-    cornerCloseness = 69
-    mobility = 69
-    frontTiles = 69
-    d = 69
+    par = evaluateParity b c
+    mob = evaluateMobility b c
+    coCap = evaluateCornersCaptured b c
+    stability = 0
+    coClo = evaluateCornerCloseness b c
+    front = 0
 
 -- 5.1.1: Coin Parity (p)
 evaluateParity :: Board -> Col -> Int
@@ -252,7 +253,7 @@ evaluateCornersCaptured b c = 25 * (maxC - minC)
     minC = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (not . cellEmpty (pieces b)) corners))
 
 -- 5.1.4: Stability
--- TODO: Not sure how to calculate this!
+-- TODO: Find a way to calculate stability
 evaluateStability :: Board -> Col -> Int
 evaluateStability b c = stability
   where
@@ -288,5 +289,6 @@ evaluateCornerCloseness b c = -12 * (maxL - minL)
               (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
 
 -- Karti: Frontier tiles (L93) (f)
+-- TODO: Find a way to calculate frontier tiles
 evaluateFront :: Board -> Col -> Int
 evaluateFront b c = undefined
