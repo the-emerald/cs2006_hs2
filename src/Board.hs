@@ -199,7 +199,7 @@ gameOver board
 -- Calls validMoves function. Reduces overall clutter when getting valid moves as
 -- only the board and colour have to be given
 getValidMoves :: Board -> Col -> [Position]
-getValidMoves board colour = validMoves board Black (range ((0,0),(7,7)))
+getValidMoves board colour = validMoves board colour (range ((0,0),(7,7)))
 
 
 -- Gets all valid moves for a given colour and list of positions
