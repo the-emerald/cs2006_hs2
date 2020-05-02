@@ -13,6 +13,9 @@ import AI
 gameLoop :: GameState -> InputT IO()
 gameLoop st
     | gameOver (board st) = outputStrLn "[INFO] Game Over"                                  -- If the game over detected then end the game
+    | (turn st) == (ai st) = do let st' = updateGameState st
+                                outputStrLn (showGameState st')
+                                gameLoop st'
     | otherwise = do outputStr ("[" ++ show(turn st) ++ "] Move: ")                         -- Otherwise ask the user to enter a move (can also be a game option such as 'settings' or 'pass')
                      input <- getInputLine ""
                      let input' = lowerStr ((\(Just x) -> x) input)                         -- Convert input to lower case
