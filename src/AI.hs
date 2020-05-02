@@ -60,7 +60,13 @@ getBestMove md (GameTree bd cl nxs) = fst (maximumBy (\x y -> compare (minimax m
 -- Update the world state after some time has passed
 updateGameState :: GameState -- ^ current game state
                    -> GameState -- ^ new game state after computer move
-updateGameState w = w
+updateGameState w =
+  case makeMove (board w) (ai w) aiMove of
+    Just ok -> GameState ok w (canUndo w) (ai w) (other (turn w))
+    Nothing -> error "AI made an illegal move"
+  where
+    gt = buildTree generateMove (board w) (ai w)
+    aiMove = getBestMove 5 gt -- Search up to 5 plys
 
 {- Hint: 'updateGameState' is where the AI gets called. If the world state
  indicates that it is a computer player's turn, updateGameState should use
