@@ -1,6 +1,7 @@
 module AI where
 
 import Board
+import Data.List (maximumBy)
 
 data GameTree = GameTree { game_board :: Board,
                            game_turn :: Col,
@@ -49,7 +50,12 @@ generateMove b c =
 getBestMove :: Int -- ^ Maximum search depth
                -> GameTree -- ^ Initial game tree
                -> Position
-getBestMove = undefined
+getBestMove md (GameTree bd cl nxs) = fst (maximumBy (\x y -> compare (minimax md (snd x)) (minimax md (snd y))) nxs)
+  where
+    minimax :: Int -> GameTree -> Int
+    minimax 0 (GameTree b c _) = evaluate b c
+    minimax _ (GameTree b c []) = evaluate b c
+    minimax ply (GameTree b c ts) = maximum (map (minimax (ply - 1) . snd) ts)
 
 -- Update the world state after some time has passed
 updateGameState :: GameState -- ^ current game state
