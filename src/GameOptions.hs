@@ -4,6 +4,7 @@ import Data.Char
 import Text.Read
 
 import Board
+import Data.Maybe (isNothing)
 
 ---------------------- Functions For Game Settings ----------------------
 
@@ -55,8 +56,9 @@ optionHandler option st = case option of
 
 -- If player passes then new state returned with number of passes increased
 playerPass :: GameState -> GameState
-playerPass st = do let board' = Board (size (board st)) (asp (board st)) ((passes (board st)) + 1) (pieces (board st))
-                   GameState board' (previous st) True (ai st) (other (turn st))
+playerPass st = do
+  let board' = Board (size (board st)) (asp (board st)) (passes (board st) + 1) (pieces (board st))
+  GameState board' (previous st) True (ai st) (other (turn st))
 
 
 -- Undo: Revert to previous move 
@@ -70,30 +72,34 @@ undo st
 
 -- Inititates the game state with the user entered arguments
 initGameState :: [String] -> Either String GameState
-initGameState args 
-            | length args == 0 = Left "[INFO] No command line arguments were detected"                                              -- If no arguments were entered, return an error message
-            | length args /= 3 = Left ("[ERROR] An invalid number of arguments were entered (" ++ show(length args) ++ ")" ++ usg)  -- If invalid number of arguments entered then reurn another meaningful message
-            | otherwise = do let size = getSize (args!!0)                                                                           -- At this point it is safe to extract the values from the arguments 
-                             let ai = getColour (args!!1)                                                                           -- The arguments are parsed using their respective parsing function
-                             let asp = getASP (args!!2)
-                             if size == Nothing || ai == Nothing || asp == Nothing then                                             -- If parsing failed for any of the arguments, or invalid input given 
-                                 Left ("[ERROR] Could not initialise board with given arguments" ++ usg)                            -- Another meningful message is returned
-                              else 
-                                 do let getVal = (\(Just x) -> x)                                                             -- Function declared to extract value from maybe value
-                                    let size' = getVal size                                                                   -- As parsing was proven to be succesfull for all methods
-                                    let ai' = getVal ai                                                                       -- Values can be extracted and stored in variables to maintain readability 
-                                    let asp' = getVal asp
-                                    Right (GameState (initBoard size' asp') undefined False ai' (other ai'))                  -- New state is returned with command line options present 
+initGameState args
+  | null args = Left "[INFO] No command line arguments were detected" -- If no arguments were entered, return an error message
+  | length args /= 3 =
+    Left ("[ERROR] An invalid number of arguments were entered (" ++ show (length args) ++ ")" ++ usg) -- If invalid number of arguments entered then reurn another meaningful message
+  -- TODO: Refactor this to use less do-s
+  | otherwise = do
+    let size = getSize (head args) -- At this point it is safe to extract the values from the arguments
+    let ai = getColour (args !! 1) -- The arguments are parsed using their respective parsing function
+    let asp = getASP (args !! 2)
+    if isNothing size || isNothing ai || isNothing asp -- If parsing failed for any of the arguments, or invalid input given
+      then Left ("[ERROR] Could not initialise board with given arguments" ++ usg) -- Another meningful message is returned
+      else do
+        let getVal (Just x) = x
+        let size' = getVal size
+        let ai' = getVal ai
+        let asp' = getVal asp
+        Right (GameState (initBoard size' asp') undefined False ai' (other ai'))                  -- New state is returned with command line options present
 
 
 -- Parses the entered board size
 getSize :: String -> Maybe Int 
-getSize size = case readMaybe size :: Maybe Int of
-                        Just x -> do if x > 3 && x < 27 && (x `mod` 2 == 0) then    -- Size is valid if the number is between 4 and 26 and even (board must be square)
-                                         Just x
-                                      else
-                                         Nothing
-                        Nothing -> Nothing 
+getSize size =
+  case readMaybe size :: Maybe Int of
+    Just x ->
+      if x > 3 && x < 27 && (x `mod` 2 == 0)
+        then Just x
+        else Nothing
+    Nothing -> Nothing
 
 
 -- Converts user entered colour (string) into type Col

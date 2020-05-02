@@ -79,34 +79,39 @@ defaultGameState = GameState (initBoard 8 False) undefined False White Black
 -- (e.g. outside the range of the board, there is a piece already there,
 -- or the move does not flip any opposing pieces)
 makeMove :: Board -> Col -> Position -> Maybe Board
-makeMove board colour position = case checkMove board colour position of
-                                        True -> do let pieces' = map (\x -> flipPiece (getFlipList board colour position) x) (pieces board)     -- Gets all pieces and flipped pieces for current move
-                                                   Just (Board (size board) (asp board) 0 (addPiece (pieces') (position, colour)))              -- Returns new board: Retains board size, resets passes to 0 and updates pieces on board 
-                                        
-                                        False -> Nothing                                                                                        -- If the move is invalid then return nothing to signal error
+makeMove board colour position =
+  if checkMove board colour position
+    then (do let pieces' = map (flipPiece (getFlipList board colour position)) (pieces board)
+             Just (Board (size board) (asp board) 0 (addPiece pieces' (position, colour))))
+    else Nothing  -- If the move is invalid then return nothing to signal error
 
 
 
 -- Combines all of the checks into one, declutters makeMove method
 checkMove :: Board -> Col -> Position -> Bool
-checkMove board colour position 
+checkMove board colour position
       -- Allows for alternative starting positions
-      | (asp board) && (length (pieces board)) < 6 = positionOnBoard board position         -- If alternative starting positions are enabled, if less than 6 pieces are on the board (4 starting + 2 first moves)        
-                                                     && cellEmpty (pieces board) position   -- Check that the piece is on the board and that the cell is empty
+  | asp board && length (pieces board) < 6 =
+    positionOnBoard board position -- If alternative starting positions are enabled, if less than 6 pieces are on the board (4 starting + 2 first moves)
+     &&
+    cellEmpty (pieces board) position -- Check that the piece is on the board and that the cell is empty
       -- Standard checks which ensure that pieces are flipped
-      | otherwise = positionOnBoard board position                      -- For normal moves: If the position is on the board
-                    && cellEmpty (pieces board) position                -- If the cell is empty 
-                    && length (getFlipList board colour position) > 0   -- If a piece is flipped. Move is valid
+  | otherwise =
+    positionOnBoard board position -- For normal moves: If the position is on the board
+     &&
+    cellEmpty (pieces board) position -- If the cell is empty
+     &&
+    not (null (getFlipList board colour position))   -- If a piece is flipped. Move is valid
 
 
 
 -- Checks if entered position is on the current board
 positionOnBoard :: Board -> Position -> Bool
-positionOnBoard board (x,y)
-      | x == -1 || y == -1 = False                        -- -1 Signals error in input (See Input.hs) therefore position must be invalid
-      | x >= (size board) || y >= (size board) = False    -- If either the x or y value is greater than the size of the current board then return false
-      | x < 0 || y < 0 = False                            -- If either the x or y valud is less than the minimum possible positional value, return false 
-      | otherwise = True                                  -- Otherwise the entered position must be on the board
+positionOnBoard board (x, y)
+  | x == -1 || y == -1 = False -- -1 Signals error in input (See Input.hs) therefore position must be invalid
+  | x >= size board || y >= size board = False -- If either the x or y value is greater than the size of the current board then return false
+  | x < 0 || y < 0 = False -- If either the x or y value is less than the minimum possible positional value, return false
+  | otherwise = True                                  -- Otherwise the entered position must be on the board
 
 
 
@@ -121,34 +126,33 @@ cellEmpty (((x,y), player) : xs) (xPos, yPos)
 
 -- Gets a list of pieces to be flipped in all 8 directions 
 getFlipList :: Board -> Col -> Position -> [Position]
-getFlipList board colour position  = do let directions = [(0,-1), (1,0), (0,1), (-1,0), (1,-1), (1,1), (-1,1), (-1,-1)]   -- List representing all possible directions in which tokens could be flipped
-                                        concat (map (\x -> getFlipsForDirection board colour position x []) directions)   -- Generates a list of all flippable pieces in all directions
+getFlipList board colour position = do
+  let directions = [(0, -1), (1, 0), (0, 1), (-1, 0), (1, -1), (1, 1), (-1, 1), (-1, -1)] -- List representing all possible directions in which tokens could be flipped
+  concatMap (\x -> getFlipsForDirection board colour position x []) directions   -- Generates a list of all flippable pieces in all directions
                                           
 
 
 -- Gets a list of pieces to be flipped in a single direction
 getFlipsForDirection :: Board -> Col -> Position -> (Int,Int) -> [Position] -> [Position]
-getFlipsForDirection board colour (x,y) (nextX, nextY) xs = do let x' = x + nextX
-                                                               let y' = y + nextY
-                                                                
-                                                               if cellEmpty (pieces board) (x', y') == False then                               -- If the next cell is not empty 
-                                                                   if (getCellColour (x',y') (pieces board) /= colour) then                     -- If the cell is of a different colour 
-                                                                       getFlipsForDirection board colour (x',y') (nextX,nextY) ((x',y') : xs)   -- Add the position to the list of positions to be flipped
-                                                                     else                                                                       -- If the cell is the same colour then all flippable pieces have been found
-                                                                       xs                                                                       -- Either an empty list will be returned or the previously discovered pieces of different colour
-                                                                 else                                                                           -- If the next cell is empty then return empty list
-                                                                   []
-
+-- TODO: Refactor this to use less do-s
+getFlipsForDirection board colour (x, y) (nextX, nextY) xs = do
+  let x' = x + nextX
+  let y' = y + nextY
+  if not (cellEmpty (pieces board) (x', y')) -- If the next cell is not empty
+    then if getCellColour (x', y') (pieces board) /= colour
+           then getFlipsForDirection board colour (x', y') (nextX, nextY) ((x', y') : xs)
+           else xs -- Either an empty list will be returned or the previously discovered pieces of different colour
+    else [] -- If the next cell is empty then return empty list
 
 
 -- Changes colour of piece if it is present in the list of pieces to be flipped
 flipPiece :: [Position] -> (Position, Col) -> (Position, Col)
-flipPiece pieces (position, colour) = do let toFlip = (filter (\x -> x == position) pieces) == [position]   -- Determines the current piece is present in the list of pieces to flip
-                                         
-                                         if toFlip then                   -- If the piece is present
-                                            (position, (other colour))    -- Flip colour and return piece
-                                          else                            -- If not present 
-                                            (position, colour)            -- return piece unchanged
+flipPiece pieces (position, colour) = do
+  let toFlip = filter (== position) pieces == [position] -- Determines the current piece is present in the list of pieces to flip
+  if toFlip -- If the piece is present
+    then (position, other colour) -- Flip colour and return piece
+                                                                          -- If not present
+    else (position, colour)            -- return piece unchanged
 
 
 
@@ -182,10 +186,10 @@ checkScore board = do let blackCount = length (filter (\x -> snd x == Black) (pi
 -- Return true if the game is complete (that is, either the board is
 -- full or there have been two consecutive passes)
 gameOver :: Board -> Bool
-gameOver board 
-      | length (pieces board) == ((size board) * (size board)) = True     -- If the number of pieces placed is equal to the size of the board then game is over
-      | (passes board) == 2 = True                                        -- If the number of passes reaches two then game is over
-      | otherwise = False                                                 -- Otherwise the game is not over
+gameOver board
+  | length (pieces board) == (size board * size board) = True -- If the number of pieces placed is equal to the size of the board then game is over
+  | passes board == 2 = True -- If the number of passes reaches two then game is over
+  | otherwise = False                                                 -- Otherwise the game is not over
 
 
 
@@ -199,9 +203,10 @@ getValidMoves board colour = validMoves board Black (range ((0,0),(7,7)))
 -- Gets all valid moves for a given colour and list of positions
 validMoves :: Board -> Col -> [Position] -> [Position]
 validMoves board colour [] = []
-validMoves board colour (x:xs) = case checkMove board colour x of 
-                                        False -> validMoves board colour xs
-                                        True -> x:(validMoves board colour xs)
+validMoves board colour (x:xs) =
+  if checkMove board colour x
+    then x : validMoves board colour xs
+    else validMoves board colour xs
 
 
 -- An evaluation function for a minimax search. Given a board and a colour
@@ -210,8 +215,7 @@ validMoves board colour (x:xs) = case checkMove board colour x of
 -- Sannidhanam, V., & Annamalai, M. (2015). An Analysis of Heuristics in Othello.
 -- and https://kartikkukreja.wordpress.com/2013/03/30/heuristic-function-for-reversiothello/
 evaluate :: Board -> Col -> Int
-evaluate b c =
-  (parity * 25)
+evaluate b c = parity * 25
   where
     parity = 69 -- replace me
     cornerOccupancy = 69
