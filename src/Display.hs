@@ -16,8 +16,7 @@ showGameState g =
 
 -- Returns letters for top of board
 getHeader :: Int -> String
-getHeader size = do let xs = [65 .. 65 + (size - 1)]                   
-                    addSpaces(map chr xs)
+getHeader size = addSpaces(map chr [65..65+(size-1)])
 
 
 -- Gets the correct space for header based on board size 

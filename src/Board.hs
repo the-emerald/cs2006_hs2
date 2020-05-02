@@ -51,10 +51,11 @@ otherAsp board = initBoard (size board) (not(asp board))
 
 -- Gets the position of the first four starter pieces based on the board size 
 getInitialPieces :: Int -> [(Position, Col)]
-getInitialPieces size =  do let a = (size - 1) `div` 2
-                            let b = a + 1
-                            [ ((a , a), White), ((b, a), Black), 
-                              ((a, b), Black),  ((b, b), White) ]
+getInitialPieces size =
+  [((a , a), White), ((b, a), Black), ((a, b), Black),  ((b, b), White)]
+  where
+    a = (size - 1) `div` 2
+    b = a + 1
 
 
 -- Game State represents the entire game world. Has all of the relevant information for the game to be played
@@ -126,34 +127,35 @@ cellEmpty (((x,y), player) : xs) (xPos, yPos)
 
 -- Gets a list of pieces to be flipped in all 8 directions 
 getFlipList :: Board -> Col -> Position -> [Position]
-getFlipList board colour position = do
-  let directions = [(0, -1), (1, 0), (0, 1), (-1, 0), (1, -1), (1, 1), (-1, 1), (-1, -1)] -- List representing all possible directions in which tokens could be flipped
+getFlipList board colour position = 
   concatMap (\x -> getFlipsForDirection board colour position x []) directions   -- Generates a list of all flippable pieces in all directions
+  where
+    directions = [(0, -1), (1, 0), (0, 1), (-1, 0), (1, -1), (1, 1), (-1, 1), (-1, -1)] -- List representing all possible directions in which tokens could be flipped
                                           
 
 
 -- Gets a list of pieces to be flipped in a single direction
 getFlipsForDirection :: Board -> Col -> Position -> (Int,Int) -> [Position] -> [Position]
--- TODO: Refactor this to use less do-s
-getFlipsForDirection board colour (x, y) (nextX, nextY) xs = do
-  let x' = x + nextX
-  let y' = y + nextY
-  if not (cellEmpty (pieces board) (x', y')) -- If the next cell is not empty
-    then if getCellColour (x', y') (pieces board) /= colour
-           then getFlipsForDirection board colour (x', y') (nextX, nextY) ((x', y') : xs)
-           else xs -- Either an empty list will be returned or the previously discovered pieces of different colour
-    else [] -- If the next cell is empty then return empty list
+getFlipsForDirection board colour (x, y) (nX, nY) xs =
+  case (nextCellEmpty, cellColour) of
+    (True, True) -> getFlipsForDirection board colour (x', y') (nX, nY) ((x', y') : xs)
+    (True, False) -> xs
+    (False, _) -> []
+  where
+    x' = x + nX
+    y' = y + nY
+    nextCellEmpty = not (cellEmpty (pieces board) (x', y'))
+    cellColour = getCellColour (x', y') (pieces board) /= colour
 
 
 -- Changes colour of piece if it is present in the list of pieces to be flipped
 flipPiece :: [Position] -> (Position, Col) -> (Position, Col)
-flipPiece pieces (position, colour) = do
-  let toFlip = filter (== position) pieces == [position] -- Determines the current piece is present in the list of pieces to flip
-  if toFlip -- If the piece is present
-    then (position, other colour) -- Flip colour and return piece
-                                                                          -- If not present
-    else (position, colour)            -- return piece unchanged
-
+flipPiece pieces (position, colour) =
+  if toFlip
+    then (position, other colour)
+    else (position, colour)
+  where
+    toFlip = filter (== position) pieces == [position]
 
 
 -- Adds Piece to given list of pieces 
@@ -215,7 +217,7 @@ validMoves board colour (x:xs) =
 -- Sannidhanam, V., & Annamalai, M. (2015). An Analysis of Heuristics in Othello.
 -- and https://kartikkukreja.wordpress.com/2013/03/30/heuristic-function-for-reversiothello/
 evaluate :: Board -> Col -> Int
-evaluate b c = 
+evaluate b c =
   (par * 25) + (mob * 5) + (coCap * 15) + (stability * 25) + (coClo * 15) + (front * 5)
   where
     par = evaluateParity b c
