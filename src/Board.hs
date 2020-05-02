@@ -134,6 +134,7 @@ getFlipList board colour position = do
 
 -- Gets a list of pieces to be flipped in a single direction
 getFlipsForDirection :: Board -> Col -> Position -> (Int,Int) -> [Position] -> [Position]
+-- TODO: Refactor this to use less do-s
 getFlipsForDirection board colour (x, y) (nextX, nextY) xs = do
   let x' = x + nextX
   let y' = y + nextY

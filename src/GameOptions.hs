@@ -76,6 +76,7 @@ initGameState args
   | null args = Left "[INFO] No command line arguments were detected" -- If no arguments were entered, return an error message
   | length args /= 3 =
     Left ("[ERROR] An invalid number of arguments were entered (" ++ show (length args) ++ ")" ++ usg) -- If invalid number of arguments entered then reurn another meaningful message
+  -- TODO: Refactor this to use less do-s
   | otherwise = do
     let size = getSize (head args) -- At this point it is safe to extract the values from the arguments
     let ai = getColour (args !! 1) -- The arguments are parsed using their respective parsing function

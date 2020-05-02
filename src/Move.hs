@@ -24,10 +24,10 @@ parseYpos pos =
   case readMaybe pos :: Maybe Int -- Try and parse string as integer
         of
     Just x ->
-      if x > 0 && x < 27
+      if x > 0 && x < 27          -- If the integer is between valid range 1 - 26 then return integer - 1 (Adjusting for starting at 0)
         then x - 1
-        else -1
-    Nothing -> -1                           -- If the entered string cannot be parsed as int then retunrn -1 to signal error
+        else -1                   -- If the number is outside of this range then return -1 to signal error 
+    Nothing -> -1                 -- If the entered string cannot be parsed as int then return -1 to signal error
 
 
 -- Returns position value for a given uppercase or lowercase character
