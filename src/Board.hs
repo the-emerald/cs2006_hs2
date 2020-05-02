@@ -2,6 +2,8 @@ module Board where
 
 import Data.Ix
 import Data.Array.IArray
+import Data.List.NonEmpty (nub)
+import Data.List (nubBy)
 
 -- Piece Colours (Either black or white only)
 data Col = Black | White
@@ -49,10 +51,11 @@ otherAsp board = initBoard (size board) (not(asp board))
 
 -- Gets the position of the first four starter pieces based on the board size 
 getInitialPieces :: Int -> [(Position, Col)]
-getInitialPieces size =  do let a = (size - 1) `div` 2
-                            let b = a + 1
-                            [ ((a , a), White), ((b, a), Black), 
-                              ((a, b), Black),  ((b, b), White) ]
+getInitialPieces size =
+  [((a , a), White), ((b, a), Black), ((a, b), Black),  ((b, b), White)]
+  where
+    a = (size - 1) `div` 2
+    b = a + 1
 
 
 -- Game State represents the entire game world. Has all of the relevant information for the game to be played
@@ -77,34 +80,39 @@ defaultGameState = GameState (initBoard 8 False) undefined False White Black
 -- (e.g. outside the range of the board, there is a piece already there,
 -- or the move does not flip any opposing pieces)
 makeMove :: Board -> Col -> Position -> Maybe Board
-makeMove board colour position = case checkMove board colour position of
-                                        True -> do let pieces' = map (\x -> flipPiece (getFlipList board colour position) x) (pieces board)     -- Gets all pieces and flipped pieces for current move
-                                                   Just (Board (size board) (asp board) 0 (addPiece (pieces') (position, colour)))              -- Returns new board: Retains board size, resets passes to 0 and updates pieces on board 
-                                        
-                                        False -> Nothing                                                                                        -- If the move is invalid then return nothing to signal error
+makeMove board colour position =
+  if checkMove board colour position
+    then (do let pieces' = map (flipPiece (getFlipList board colour position)) (pieces board)
+             Just (Board (size board) (asp board) 0 (addPiece pieces' (position, colour))))
+    else Nothing  -- If the move is invalid then return nothing to signal error
 
 
 
 -- Combines all of the checks into one, declutters makeMove method
 checkMove :: Board -> Col -> Position -> Bool
-checkMove board colour position 
+checkMove board colour position
       -- Allows for alternative starting positions
-      | (asp board) && (length (pieces board)) < 6 = positionOnBoard board position         -- If alternative starting positions are enabled, if less than 6 pieces are on the board (4 starting + 2 first moves)        
-                                                     && cellEmpty (pieces board) position   -- Check that the piece is on the board and that the cell is empty
+  | asp board && length (pieces board) < 6 =
+    positionOnBoard board position -- If alternative starting positions are enabled, if less than 6 pieces are on the board (4 starting + 2 first moves)
+     &&
+    cellEmpty (pieces board) position -- Check that the piece is on the board and that the cell is empty
       -- Standard checks which ensure that pieces are flipped
-      | otherwise = positionOnBoard board position                      -- For normal moves: If the position is on the board
-                    && cellEmpty (pieces board) position                -- If the cell is empty 
-                    && length (getFlipList board colour position) > 0   -- If a piece is flipped. Move is valid
+  | otherwise =
+    positionOnBoard board position -- For normal moves: If the position is on the board
+     &&
+    cellEmpty (pieces board) position -- If the cell is empty
+     &&
+    not (null (getFlipList board colour position))   -- If a piece is flipped. Move is valid
 
 
 
 -- Checks if entered position is on the current board
 positionOnBoard :: Board -> Position -> Bool
-positionOnBoard board (x,y)
-      | x == -1 || y == -1 = False                        -- -1 Signals error in input (See Input.hs) therefore position must be invalid
-      | x >= (size board) || y >= (size board) = False    -- If either the x or y value is greater than the size of the current board then return false
-      | x < 0 || y < 0 = False                            -- If either the x or y valud is less than the minimum possible positional value, return false 
-      | otherwise = True                                  -- Otherwise the entered position must be on the board
+positionOnBoard board (x, y)
+  | x == -1 || y == -1 = False -- -1 Signals error in input (See Input.hs) therefore position must be invalid
+  | x >= size board || y >= size board = False -- If either the x or y value is greater than the size of the current board then return false
+  | x < 0 || y < 0 = False -- If either the x or y value is less than the minimum possible positional value, return false
+  | otherwise = True                                  -- Otherwise the entered position must be on the board
 
 
 
@@ -119,35 +127,35 @@ cellEmpty (((x,y), player) : xs) (xPos, yPos)
 
 -- Gets a list of pieces to be flipped in all 8 directions 
 getFlipList :: Board -> Col -> Position -> [Position]
-getFlipList board colour position  = do let directions = [(0,-1), (1,0), (0,1), (-1,0), (1,-1), (1,1), (-1,1), (-1,-1)]   -- List representing all possible directions in which tokens could be flipped
-                                        concat (map (\x -> getFlipsForDirection board colour position x []) directions)   -- Generates a list of all flippable pieces in all directions
+getFlipList board colour position = 
+  concatMap (\x -> getFlipsForDirection board colour position x []) directions   -- Generates a list of all flippable pieces in all directions
+  where
+    directions = [(0, -1), (1, 0), (0, 1), (-1, 0), (1, -1), (1, 1), (-1, 1), (-1, -1)] -- List representing all possible directions in which tokens could be flipped
                                           
 
 
 -- Gets a list of pieces to be flipped in a single direction
 getFlipsForDirection :: Board -> Col -> Position -> (Int,Int) -> [Position] -> [Position]
-getFlipsForDirection board colour (x,y) (nextX, nextY) xs = do let x' = x + nextX
-                                                               let y' = y + nextY
-                                                                
-                                                               if cellEmpty (pieces board) (x', y') == False then                               -- If the next cell is not empty 
-                                                                   if (getCellColour (x',y') (pieces board) /= colour) then                     -- If the cell is of a different colour 
-                                                                       getFlipsForDirection board colour (x',y') (nextX,nextY) ((x',y') : xs)   -- Add the position to the list of positions to be flipped
-                                                                     else                                                                       -- If the cell is the same colour then all flippable pieces have been found
-                                                                       xs                                                                       -- Either an empty list will be returned or the previously discovered pieces of different colour
-                                                                 else                                                                           -- If the next cell is empty then return empty list
-                                                                   []
-
+getFlipsForDirection board colour (x, y) (nX, nY) xs =
+  case (nextCellEmpty, cellColour) of
+    (True, True) -> getFlipsForDirection board colour (x', y') (nX, nY) ((x', y') : xs)
+    (True, False) -> xs
+    (False, _) -> []
+  where
+    x' = x + nX
+    y' = y + nY
+    nextCellEmpty = not (cellEmpty (pieces board) (x', y'))
+    cellColour = getCellColour (x', y') (pieces board) /= colour
 
 
 -- Changes colour of piece if it is present in the list of pieces to be flipped
 flipPiece :: [Position] -> (Position, Col) -> (Position, Col)
-flipPiece pieces (position, colour) = do let toFlip = (filter (\x -> x == position) pieces) == [position]   -- Determines the current piece is present in the list of pieces to flip
-                                         
-                                         if toFlip then                   -- If the piece is present
-                                            (position, (other colour))    -- Flip colour and return piece
-                                          else                            -- If not present 
-                                            (position, colour)            -- return piece unchanged
-
+flipPiece pieces (position, colour) =
+  if toFlip
+    then (position, other colour)
+    else (position, colour)
+  where
+    toFlip = filter (== position) pieces == [position]
 
 
 -- Adds Piece to given list of pieces 
@@ -180,10 +188,10 @@ checkScore board = do let blackCount = length (filter (\x -> snd x == Black) (pi
 -- Return true if the game is complete (that is, either the board is
 -- full or there have been two consecutive passes)
 gameOver :: Board -> Bool
-gameOver board 
-      | length (pieces board) == ((size board) * (size board)) = True     -- If the number of pieces placed is equal to the size of the board then game is over
-      | (passes board) == 2 = True                                        -- If the number of passes reaches two then game is over
-      | otherwise = False                                                 -- Otherwise the game is not over
+gameOver board
+  | length (pieces board) == (size board * size board) = True -- If the number of pieces placed is equal to the size of the board then game is over
+  | passes board == 2 = True -- If the number of passes reaches two then game is over
+  | otherwise = False                                                 -- Otherwise the game is not over
 
 
 
@@ -197,9 +205,10 @@ getValidMoves board colour = validMoves board Black (range ((0,0),(7,7)))
 -- Gets all valid moves for a given colour and list of positions
 validMoves :: Board -> Col -> [Position] -> [Position]
 validMoves board colour [] = []
-validMoves board colour (x:xs) = case checkMove board colour x of 
-                                        False -> validMoves board colour xs
-                                        True -> x:(validMoves board colour xs)
+validMoves board colour (x:xs) =
+  if checkMove board colour x
+    then x : validMoves board colour xs
+    else validMoves board colour xs
 
 
 -- An evaluation function for a minimax search. Given a board and a colour
@@ -209,24 +218,14 @@ validMoves board colour (x:xs) = case checkMove board colour x of
 -- and https://kartikkukreja.wordpress.com/2013/03/30/heuristic-function-for-reversiothello/
 evaluate :: Board -> Col -> Int
 evaluate b c =
-  (parity * 25)
+  (par * 25) + (mob * 5) + (coCap * 15) + (stability * 25) + (coClo * 15) + (front * 5)
   where
-    values :: Array (Int, Int) Int
-    values = listArray ((0, 0), (7, 7)) $ concat [[4, -3, 2, 2, 2, 2, -3, 4],
-            [-3, -4, -1, -1, -1, -1, -4, -3],
-            [2, -1, 1, 0 ,0, 1, -1, 2],
-            [2, -1, 0, 1, 1, 0, -1, 2],
-            [2, -1, 0, 1, 1, 0, -1, 2],
-            [2, -1, 1, 0 ,0, 1, -1, 2],
-            [-3, -4, -1, -1, -1, -1, -4, -3],
-            [4, -3, 2, 2, 2, 2, -3, 4]]
-
-    parity = 69 -- replace me
-    cornerOccupancy = 69
-    cornerCloseness = 69
-    mobility = 69
-    frontTiles = 69
-    d = 69
+    par = evaluateParity b c
+    mob = evaluateMobility b c
+    coCap = evaluateCornersCaptured b c
+    stability = 0
+    coClo = evaluateCornerCloseness b c
+    front = 0
 
 -- 5.1.1: Coin Parity (p)
 evaluateParity :: Board -> Col -> Int
@@ -235,10 +234,6 @@ evaluateParity b c =
   where
     maxP = length (filter (\x -> snd x == c) (pieces b))
     minP = length (filter (\x -> snd x == other c) (pieces b))
-
--- Karti: Front tiles (L93) (f)
-evaluateFront :: Board -> Col -> Int
-evaluateFront b c = undefined
 
 -- 5.1.2: Mobility (m)
 evaluateMobility :: Board -> Col -> Int
@@ -254,18 +249,48 @@ evaluateMobility b c=
 evaluateCornersCaptured :: Board -> Col -> Int
 evaluateCornersCaptured b c = 25 * (maxC - minC)
   where
-    corners = [(0, 0), (0, 7), (7, 0), (7, 7)]
-    maxC = length (filter (\x -> getCellColour x (pieces b) == c) (filter (cellEmpty (pieces b)) corners))
-    minC = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (cellEmpty (pieces b)) corners))
+    corners = [(0, 0), (0, size b), (size b, 0), (size b, size b)]
+    -- Filter by not empty, and then filter by cell colour
+    maxC = length (filter (\x -> getCellColour x (pieces b) == c) (filter (not . cellEmpty (pieces b)) corners))
+    minC = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (not . cellEmpty (pieces b)) corners))
 
 -- 5.1.4: Stability
+-- TODO: Find a way to calculate stability
 evaluateStability :: Board -> Col -> Int
-evaluateStability = undefined
+evaluateStability b c = stability
+  where
+    oc = other c
+    unstablePieces =
+      length (nubBy (\x y -> fst x == fst y && snd x == snd y) (concatMap (getFlipList b oc) (getValidMoves b oc)))
+    stability = 5
 
---evaluateCornerOccupancy :: Board -> Col -> Int
---evaluateCornerOccupancy = undefined
---
---evaluateCornerCloseness :: Board -> Col -> Int
---evaluateCornerCloseness = undefined
---
+-- Karti: Close corners (l)
+evaluateCornerCloseness :: Board -> Col -> Int
+evaluateCornerCloseness b c = -12 * (maxL - minL)
+    -- The head of each sublist is the corner, and the tail is the neighbours
+  where
+    closeCorners =
+      [ [(0, 0), (0, 1), (1, 1), (1, 0)]
+      , [(0, size b), (0, size b - 1), (1, size b - 1), (1, size b)]
+      , [(size b, 0), (size b, 1), (size b - 1, 1), (size b - 1, 0)]
+      , [(size b, size b), (size b - 1, size b), (size b - 1, size b - 1), (size b, size b - 1)]
+      ]
+    maxL =
+      length
+        (filter
+           (\x -> getCellColour x (pieces b) == c)
+           (filter
+              (not . cellEmpty (pieces b))
+              (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
+    minL =
+      length
+        (filter
+           (\x -> getCellColour x (pieces b) == other c)
+           (filter
+              (not . cellEmpty (pieces b))
+              (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
 
+-- Karti: Frontier tiles (L93) (f)
+-- TODO: Find a way to calculate frontier tiles
+evaluateFront :: Board -> Col -> Int
+evaluateFront b c = undefined

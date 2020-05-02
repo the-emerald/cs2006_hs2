@@ -55,16 +55,19 @@ settingsLoop st = do outputStrLn "-------- Settings --------"
 
 main :: IO ()
 main = runInputT defaultSettings run
-    where 
-        run :: InputT IO()
-        run = do outputStrLn "---------- Welcome to Othello ----------"       
-                 args <- (lift getArgs)                                                                -- Get the command line arguments
-                 let args' = map lowerStr args                                                         -- Convert the arguments to lower case strings. Using map to apply function to each string in list of strings
-                 case initGameState args' of                                                           -- Try to initialise game from the arguments given 
-                     Left msg -> do outputStrLn msg                                                    -- If game state couldnt be created from arguments, return meaningful message 
-                                    outputStrLn "[INFO] Default board used"                            -- Run game with default board and inform the user that this is the case
-                                    outputStrLn (showGameState defaultGameState)
-                                    gameLoop (defaultGameState)
-                     Right st -> do outputStrLn "[INFO] Board created with command line arguments"     -- If game could be created with command line arguments then inform the user 
-                                    outputStrLn (showGameState st)                                     -- show board 
-                                    gameLoop (st)                                                      -- start game loop and ask for next move
+  where
+    run :: InputT IO ()
+    run = do
+      outputStrLn "---------- Welcome to Othello ----------"
+      args <- lift getArgs                                                -- Get the command line arguments
+      let args' = map lowerStr args                                       -- Convert the arguments to lower case strings. Using map to apply function to each string in list of strings
+      case initGameState args' of                                         -- Try to initialise game from the arguments given
+        Left msg -> do                                                    -- If game state couldnt be created from arguments, return meaningful message
+          outputStrLn msg
+          outputStrLn "[INFO] Default board used"
+          outputStrLn (showGameState defaultGameState)
+          gameLoop defaultGameState
+        Right st -> do
+          outputStrLn "[INFO] Board created with command line arguments"   -- If game could be created with command line arguments then inform the user
+          outputStrLn (showGameState st)                                   -- Show board
+          gameLoop st                                                      -- Start game loop and ask for next move

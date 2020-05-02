@@ -1,6 +1,7 @@
 module AI where
 
 import Board
+import Data.List (maximumBy)
 
 data GameTree = GameTree { game_board :: Board,
                            game_turn :: Col,
@@ -37,9 +38,9 @@ buildTree gen b c =
 -- Generate some set of "good" moves given the Board and Col
 generateMove :: Board -> Col -> [Position]
 generateMove b c =
-  tail moves
-  where
-    moves = getValidMoves b c
+  filter (\x -> case makeMove b c x of
+    Just ok -> evaluate ok c > 0
+    Nothing -> False) (getValidMoves b c)
 
 
 -- Get the best next move from a (possibly infinite) game tree. This should
@@ -49,12 +50,23 @@ generateMove b c =
 getBestMove :: Int -- ^ Maximum search depth
                -> GameTree -- ^ Initial game tree
                -> Position
-getBestMove = undefined
+getBestMove md (GameTree bd cl nxs) = fst (maximumBy (\x y -> compare (minimax md (snd x)) (minimax md (snd y))) nxs)
+  where
+    minimax :: Int -> GameTree -> Int
+    minimax 0 (GameTree b c _) = evaluate b c
+    minimax _ (GameTree b c []) = evaluate b c
+    minimax ply (GameTree b c ts) = maximum (map (minimax (ply - 1) . snd) ts)
 
 -- Update the world state after some time has passed
 updateGameState :: GameState -- ^ current game state
                    -> GameState -- ^ new game state after computer move
-updateGameState w = w
+updateGameState w =
+  case makeMove (board w) (ai w) aiMove of
+    Just ok -> GameState ok w (canUndo w) (ai w) (other (turn w))
+    Nothing -> error "AI made an illegal move"
+  where
+    gt = buildTree generateMove (board w) (ai w)
+    aiMove = getBestMove 5 gt -- Search up to 5 plys
 
 {- Hint: 'updateGameState' is where the AI gets called. If the world state
  indicates that it is a computer player's turn, updateGameState should use
