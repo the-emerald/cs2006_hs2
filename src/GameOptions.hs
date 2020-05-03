@@ -14,16 +14,17 @@ optionsMenu st =  ("---------------------------------------- Game Options ------
                   ++ "\n\nINSTRUCTIONS: Enter command enclosed in [] to modify setting. Current Setting enclosed in ()."                   
                   
                   ++ "\n\nBoard - Changes Will Cause Game To Restart:"
-                  ++ ("\n  Change AI Player                         [toggle-ai]       (" ++ show(ai st) ++ ")")
-                  ++ ("\n  Change Board Size                        [size:<new size>] (" ++ show(size (board st)) ++ ")")
-                  ++ ("\n  Allow for alternative starting positions [toggle-asp]      (" ++ show(asp (board st)) ++ ")")
+                  ++ ("\n  Change AI Player                          [toggle-ai]        (" ++ show(ai st) ++ ")")
+                  ++ ("\n  Change Board Size                         [size:<new size>]  (" ++ show(size (board st)) ++ ")")
+                  ++ ("\n  Allow for alternative starting positions  [toggle-asp]       (" ++ show(asp (board st)) ++ ")")
                   
                   ++ "\n\nGame Options:"
                   ++ ("\n  AI Level    [ai:<level (1-3)>]                (" ++ show(aiLevel st) ++ ")")
                   ++ "\n  Save Game   [save:<give a unique game name>]"
                   ++ "\n  Reload Game [reload:<game name>]"
                   
-                  ++ "\n\n[exit] settings menu")
+                  ++ "\n\n[exit] settings menu\n")
+                  ++ "\n---------------------------------------------------------------------------------------------"
 
 
 -- The settings handler is used to allow the user to alter game settings whilst the program is running.

@@ -22,7 +22,8 @@ gameLoop st
                      let input' = lowerStr ((\(Just x) -> x) input)                         -- Convert input to lower case
                      case input' of                                                     
                          "quit" -> outputStrLn "[INFO] Game was finished by user"           -- End the game immediately if the user enters 'quit'
-                         "settings" -> settingsLoop st                                      -- Run the in-game settings menu if the user enters 'settings'
+                         "settings" -> do outputStrLn (optionsMenu st)
+                                          settingsLoop st                                      -- Run the in-game settings menu if the user enters 'settings'
                          input -> case nextState input st of                                -- Otherwise try and parse the input 
                                         Left msg -> do outputStrLn (showGameState st)       -- If the input can not be processed, output the board, 
                                                        outputStrLn msg                      -- error message 
@@ -32,8 +33,7 @@ gameLoop st
           
 
 settingsLoop ::GameState -> InputT IO()
-settingsLoop st = do outputStrLn (optionsMenu st)
-                     outputStr "\nOption: "
+settingsLoop st = do outputStr "Option: "
                      input <- getInputLine ""                                                           -- Get input from the user
                      let input' = lowerStr ((\(Just x) -> x) input)                                     -- Convert input to lower case
                      case input' of                                                                  
@@ -43,7 +43,7 @@ settingsLoop st = do outputStrLn (optionsMenu st)
                          input -> case settingsHandler input st of                                      -- Otherwise keep displaying settings menu with settings value to allow user to make multiple changes
                                             Left msg -> do outputStrLn msg                              -- If the user enters an invalid option then loop
                                                            settingsLoop st
-                                            Right st' -> do outputStrLn "[DONE] Setting updated"        -- If the user enters a correct option, then inform the user and loop to allow another setting to be
+                                            Right st' -> do outputStr "[DONE] Setting updated\n"        -- If the user enters a correct option, then inform the user and loop to allow another setting to be
                                                             settingsLoop st'                            -- modified if need be
                                         
 
