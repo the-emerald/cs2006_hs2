@@ -3,6 +3,10 @@ module AI where
 import Board
 import Data.List (maximumBy)
 
+import System.Random (randomRIO)
+import Control.Monad.Trans.Class
+
+
 data GameTree = GameTree { game_board :: Board,
                            game_turn :: Col,
                            next_moves :: [(Position, GameTree)] }
@@ -62,12 +66,33 @@ getBestMove md (GameTree bd cl nxs) = fst (maximumBy (\x y -> compare (minimax m
 updateGameState :: GameState -- ^ current game state
                    -> GameState -- ^ new game state after computer move
 updateGameState w =
-  case makeMove (board w) (ai w) aiMove of
-    Just ok -> GameState ok w (canUndo w) (ai w) (aiLevel w) (other (turn w))
-    Nothing -> error "AI made an illegal move"
-  where
-    gt = buildTree generateMove (board w) (ai w)
-    aiMove = getBestMove 5 gt -- Search up to 5 plys
+  case (aiLevel w) of
+    1 -> randomMove w
+    2 -> easyAI w
+    3 -> hardAI w
+
+randomMove :: GameState -> GameState
+--randomMove st = case makeMove (board st) (ai st) randomMove of
+--                  Just ok -> GameState ok st (canUndo st) (ai st) (aiLevel st) (other (turn st))
+--                  Nothing -> error "Random move generator made an illegal move"
+--                where 
+--                  mvs = getValidMoves (board st) (ai st)
+--                  randomMove = lift (fmap (mvs !!) (randomRIO (0, length mvs - 1)))
+randomMove = undefined -- NEEDS TO BE FIXED
+
+
+easyAI :: GameState -> GameState
+easyAI st = undefined
+
+hardAI :: GameState -> GameState
+hardAI st = case makeMove (board st) (ai st) aiMove of
+              Just ok -> GameState ok st (canUndo st) (ai st) (aiLevel st) (other (turn st))
+              Nothing -> error "AI made an illegal move"
+            where
+              gt = buildTree generateMove (board st) (ai st)
+              aiMove = getBestMove 5 gt -- Search up to 5 plys
+
+
 
 {- Hint: 'updateGameState' is where the AI gets called. If the world state
  indicates that it is a computer player's turn, updateGameState should use
