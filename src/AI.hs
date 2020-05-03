@@ -3,6 +3,7 @@ module AI where
 import Board
 import Data.List (maximumBy)
 import Control.Parallel.Strategies
+import Debug.Trace (traceShow, trace)
 
 import System.Random (randomRIO)
 import Control.Monad.Trans.Class
@@ -44,7 +45,8 @@ buildTree gen b c =
 generateMove :: Board -> Col -> [Position]
 generateMove b c =
   filter (\x -> case makeMove b c x of
-    Just ok -> abs (evaluate ok c) > 0
+--    Just ok -> abs (trace (show (evaluate ok c)) (evaluate ok c)) > 50
+    Just ok -> abs (evaluate ok c) > 50
     Nothing -> False) (getValidMoves b c)
 
 
@@ -76,7 +78,7 @@ randomMove :: GameState -> GameState
 --randomMove st = case makeMove (board st) (ai st) randomMove of
 --                  Just ok -> GameState ok st (canUndo st) (ai st) (aiLevel st) (other (turn st))
 --                  Nothing -> error "Random move generator made an illegal move"
---                where 
+--                where
 --                  mvs = getValidMoves (board st) (ai st)
 --                  randomMove = lift (fmap (mvs !!) (randomRIO (0, length mvs - 1)))
 randomMove = undefined -- NEEDS TO BE FIXED
@@ -92,6 +94,12 @@ hardAI st = case makeMove (board st) (ai st) aiMove of
             where
               gt = buildTree generateMove (board st) (ai st)
               aiMove = getBestMove 5 gt -- Search up to 5 plys
+  case makeMove (board w) (ai w) aiMove of
+    Just ok -> GameState ok w (canUndo w) (ai w) (aiLevel w) (other (turn w))
+    Nothing -> error "AI made an illegal move"
+  where
+    gt = buildTree generateMove (board w) (ai w)
+    aiMove = getBestMove 3 gt -- Search up to 5 plys
 
 
 
