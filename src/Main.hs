@@ -32,14 +32,8 @@ gameLoop st
           
 
 settingsLoop ::GameState -> InputT IO()
-settingsLoop st = do outputStrLn "-------- Settings --------"
-                     outputStrLn "INSTRUCTIONS: Enter command enclosed in [] to modify setting. Current Setting enclosed in ()."                       -- Print settings instructions with current settings values
-                     outputStrLn ("1. Change AI Player (" ++ show(ai st) ++ ") [toggle-ai] (Game Will Restart)")
-                     outputStrLn ("2. Change Board Size (" ++ show(size (board st)) ++ ") [size:<new size>] (Game Will Restart)")
-                     outputStrLn ("3. Allow for alternative starting positions (" ++ show(asp (board st)) ++ ") [toggle-asp] (Game Will Restart)")
-                     outputStrLn "[exit] settings menu"
-                     outputStr "choice: "
-
+settingsLoop st = do outputStrLn (optionsMenu st)
+                     outputStr "\nOption: "
                      input <- getInputLine ""                                                           -- Get input from the user
                      let input' = lowerStr ((\(Just x) -> x) input)                                     -- Convert input to lower case
                      case input' of                                                                  

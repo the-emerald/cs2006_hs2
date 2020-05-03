@@ -8,6 +8,20 @@ import Data.Maybe (isNothing)
 
 ---------------------- Functions For Game Settings ----------------------
 
+-- In game options menu
+optionsMenu :: GameState -> String
+optionsMenu st =  ("------------- Game Options -------------"
+                  ++ "\n\nINSTRUCTIONS: Enter command enclosed in [] to modify setting. Current Setting enclosed in ()."                   
+                  ++ "\n\nBoard - Changes Will Cause Game To Restart:"
+                  ++ ("\n  Change AI Player                         [toggle-ai]       (" ++ show(ai st) ++ ")")
+                  ++ ("\n  Change Board Size                        [size:<new size>] (" ++ show(size (board st)) ++ ")")
+                  ++ ("\n  Allow for alternative starting positions [toggle-asp]      (" ++ show(asp (board st)) ++ ")")
+                  ++ "\n\nGame Options:"
+                  ++ "\n  Save Game   [save:<give a unique game name>]"
+                  ++ "\n  Reload Game [reload:<game name>]"
+                  ++ "\n\n[exit] settings menu")
+
+
 -- The settings handler is used to allow the user to alter game settings whilst the program is running.
 -- If an option is entered correctly with correct values then a new game state with the updated field will be returned
 settingsHandler :: String -> GameState -> Either String GameState
@@ -15,6 +29,8 @@ settingsHandler option st = case option of
                               "toggle-ai" -> Right (changeAiPlayer st)                 -- Changes AI player
                               "toggle-asp" -> Right (changeASP st)                     -- Changes Alternative Starting Positions Value
                               ('s':'i':'z':'e':':':size) -> changeBoardSize size st    -- Alters The Board Size
+                              ('s':'a':'v':'e':':':name) -> saveGame st name
+                              ('r':'e':'l':'o':'a':'d':':':name) -> reloadGame name
                               _ -> Left "[ERROR] Invalid Settings Choice"              -- Otherwise input is invalid and error returned
 
 
@@ -44,6 +60,15 @@ changeBoardSize size st = case getSize size of
                               Just x -> Right (GameState (initBoard x (asp (board st))) undefined False (ai st) (turn st))
 
 
+-- Saves the current game at current state with an entered name
+saveGame :: GameState -> String -> Either String GameState
+saveGame st name = Left "NEED TO IMPLEMENT THIS (GameOptions.hs)" -- TODO
+
+
+-- Reloads a given game
+reloadGame :: String -> Either String GameState
+reloadGame name = Left "NEED TO IMPLEMENT THIS (GameOptions.hs)"  -- TODO
+
 ---------------------- Functions For In Game Options ----------------------
 
 -- Used to handle in game options.
@@ -51,10 +76,11 @@ optionHandler :: String -> GameState -> Either String GameState
 optionHandler option st = case option of 
                             "pass" -> Right (playerPass st)
                             "undo" -> undo st
+                            "hint" -> Left (getHint st)
                             _ -> Left "[ERROR] Invalid Input"
 
 
--- If player passes then new state returned with number of passes increased
+-- Pass: If player passes then new state returned with number of passes increased
 playerPass :: GameState -> GameState
 playerPass st = do
   let board' = Board (size (board st)) (asp (board st)) (passes (board st) + 1) (pieces (board st))
@@ -66,6 +92,11 @@ undo :: GameState -> Either String GameState
 undo st 
         | canUndo st = Right (previous st)
         | otherwise = Left "[ERROR] Cannot Undo Further"
+
+
+-- Hint: IF the player asks for a hint. Then print the best possible move. 
+getHint :: GameState -> String 
+getHint st = "UPDATE THIS METHOD - GameOptions.hs"            -- TODO - ADD HINTS AFTER AI COMPLETED
 
 
 ---------------------- Functions For Validating Command Line Arguments ------------------------
