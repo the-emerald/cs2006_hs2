@@ -2,6 +2,7 @@ module AI where
 
 import Board
 import Data.List (maximumBy)
+import Control.Parallel.Strategies
 
 data GameTree = GameTree { game_board :: Board,
                            game_turn :: Col,
@@ -56,7 +57,7 @@ getBestMove md (GameTree bd cl nxs) = fst (maximumBy (\x y -> compare (minimax m
     minimax :: Int -> (Position, GameTree) -> Int
     minimax 0 (_, GameTree b c _) = evaluate b c
     minimax _ (_, GameTree b c []) = evaluate b c
-    minimax ply (_, GameTree b c ts) = maximum (map (minimax (ply - 1)) ts)
+    minimax ply (_, GameTree b c ts) = maximum (parMap rdeepseq (minimax (ply - 1)) ts)
 
 -- Update the world state after some time has passed
 updateGameState :: GameState -- ^ current game state
