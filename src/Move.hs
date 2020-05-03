@@ -9,7 +9,7 @@ import Board
 moveHandler :: String -> GameState -> Either String GameState
 moveHandler move st = case makeMove (board st) (turn st) (getCoord move) of
                                Nothing -> Left "[Move] Invalid Move"
-                               Just board' -> Right (GameState board' st True (ai st) (other (turn st)))
+                               Just board' -> Right (GameState board' st True (ai st) (aiLevel st) (other (turn st)))
 
 
 -- Given an input string, convert it to a board coordinate as a pair of Ints

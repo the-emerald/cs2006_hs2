@@ -64,15 +64,16 @@ data GameState
                      previous :: GameState,   -- Previous game state (used when undoing a move)
                      canUndo :: Bool,         -- Used to determine whether or not a move can be undone 
                      ai :: Col,               -- Which color is being played by the AI
+                     aiLevel :: Int,           -- Detemines which AI implementation is to be used 
                      turn :: Col }            -- Colour of player whos turn it is
   deriving Show
 
 
 -- Default Game State
 -- This consists of the default 8x8 board, no previous move, no possibility of undoing a move, 
--- white as the ai player and black as the starting turn 
+-- white as the ai player, random AI (Level 0) and black as the starting turn 
 defaultGameState :: GameState
-defaultGameState = GameState (initBoard 8 False) undefined False White Black
+defaultGameState = GameState (initBoard 8 False) undefined False White 0 Black
 
 
 

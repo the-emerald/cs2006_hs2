@@ -63,7 +63,7 @@ updateGameState :: GameState -- ^ current game state
                    -> GameState -- ^ new game state after computer move
 updateGameState w =
   case makeMove (board w) (ai w) aiMove of
-    Just ok -> GameState ok w (canUndo w) (ai w) (other (turn w))
+    Just ok -> GameState ok w (canUndo w) (ai w) (aiLevel w) (other (turn w))
     Nothing -> error "AI made an illegal move"
   where
     gt = buildTree generateMove (board w) (ai w)
