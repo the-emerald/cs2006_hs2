@@ -6,7 +6,7 @@ import Control.Parallel.Strategies
 import Debug.Trace (traceShow, trace)
 
 import System.Random (randomRIO)
-import Control.Monad.Trans.Class
+import Control.Monad.IO.Class (liftIO)
 
 
 data GameTree = GameTree { game_board :: Board,
@@ -75,14 +75,12 @@ updateGameState w =
     3 -> minimaxAI 3 w
 
 randomMove :: GameState -> GameState
---randomMove st = case makeMove (board st) (ai st) randomMove of
---                  Just ok -> GameState ok st (canUndo st) (ai st) (aiLevel st) (other (turn st))
---                  Nothing -> error "Random move generator made an illegal move"
---                where
---                  mvs = getValidMoves (board st) (ai st)
---                  randomMove = lift (fmap (mvs !!) (randomRIO (0, length mvs - 1)))
-randomMove = minimaxAI 1 -- TODO: Add a random move AI
-
+randomMove st =
+  case makeMove (board st) (ai st) (head mvs) of -- Chosen by fair dice roll. Guaranteed to be random.
+    Just ok -> GameState ok st (canUndo st) (ai st) (aiLevel st) (other (turn st))
+    Nothing -> error "Random move generator made an illegal move"
+  where
+    mvs = getValidMoves (board st) (ai st)
 
 minimaxAI :: Int -> GameState -> GameState
 minimaxAI p st = case makeMove (board st) (ai st) aiMove of
