@@ -195,6 +195,12 @@ gameOver board
   | otherwise = False                                                 -- Otherwise the game is not over
 
 
+-- Pass: If player passes then new state returned with number of passes increased
+playerPass :: GameState -> GameState
+playerPass st = do
+  let board' = Board (size (board st)) (asp (board st)) (passes (board st) + 1) (pieces (board st))
+  GameState board' (previous st) True (ai st) (aiLevel st) (other (turn st))
+
 
 -- Gets all valid moves for a given board and colour
 -- Calls validMoves function. Reduces overall clutter when getting valid moves as

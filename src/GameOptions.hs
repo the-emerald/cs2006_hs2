@@ -4,6 +4,7 @@ import Data.Char
 import Text.Read
 
 import Board
+import AI
 import Data.Maybe (isNothing)
 
 ---------------------- Functions For Game Settings ----------------------
@@ -94,13 +95,6 @@ optionHandler option st = case option of
                             "undo" -> undo st
                             "hint" -> Left (getHint st)
                             _ -> Left "[ERROR] Invalid Input"
-
-
--- Pass: If player passes then new state returned with number of passes increased
-playerPass :: GameState -> GameState
-playerPass st = do
-  let board' = Board (size (board st)) (asp (board st)) (passes (board st) + 1) (pieces (board st))
-  GameState board' (previous st) True (ai st) (aiLevel st) (other (turn st))
 
 
 -- Undo: Revert to previous move 

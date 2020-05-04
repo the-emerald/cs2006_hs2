@@ -1,7 +1,6 @@
 module AI where
 
 import Board
-import GameOptions
 import Data.List (maximumBy)
 import Control.Parallel.Strategies
 import Debug.Trace (traceShow, trace)
