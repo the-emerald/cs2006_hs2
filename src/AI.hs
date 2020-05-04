@@ -1,6 +1,7 @@
 module AI where
 
 import Board
+import GameOptions
 import Data.List (maximumBy)
 import Control.Parallel.Strategies
 import Debug.Trace (traceShow, trace)
@@ -68,14 +69,17 @@ getBestMove md (GameTree bd cl nxs) = fst (maximumBy (\x y -> compare (minimax m
 -- Update the world state after some time has passed
 updateGameState :: GameState -- ^ current game state
                    -> GameState -- ^ new game state after computer move
-updateGameState w =
-  case aiLevel w of
-    1 -> randomMove w
-    2 -> minimaxAI 2 w
-    3 -> minimaxAI 3 w
-    4 -> minimaxAI 4 w
-    _ -> error "Invlaid AI Level"
+updateGameState w 
+      | (getValidMoves (board w) (ai w)) == [] =  playerPass w   -- If there are no valid moves for the AI to play then the AI should pass
+      | otherwise = case aiLevel w of                            -- Otherwise the AI shoud play a move based on the set AI level 
+                      1 -> randomMove w
+                      2 -> minimaxAI 2 w
+                      3 -> minimaxAI 3 w
+                      4 -> minimaxAI 4 w
+                      _ -> error "Invlaid AI Level"
 
+
+-- Picks a random move from a list of valid moves
 randomMove :: GameState -> GameState
 randomMove st =
   case makeMove (board st) (ai st) (head mvs) of -- Chosen by fair dice roll. Guaranteed to be random.
@@ -84,6 +88,9 @@ randomMove st =
   where
     mvs = getValidMoves (board st) (ai st)
 
+
+-- MinMax AI. Search depth specificed by AI level (Max:4)
+-- The greater the AI level the further into the future the AI looks
 minimaxAI :: Int -> GameState -> GameState
 minimaxAI p st = case makeMove (board st) (ai st) aiMove of
               Just ok -> GameState ok st (canUndo st) (ai st) (aiLevel st) (other (turn st))
@@ -91,6 +98,7 @@ minimaxAI p st = case makeMove (board st) (ai st) aiMove of
             where
               gt = buildTree generateMove (board st) (ai st)
               aiMove = getBestMove p gt -- Search up to p plys
+
 
 {- Hint: 'updateGameState' is where the AI gets called. If the world state
  indicates that it is a computer player's turn, updateGameState should use
