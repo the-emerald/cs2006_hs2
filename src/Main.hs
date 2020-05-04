@@ -12,7 +12,7 @@ import AI
 
 gameLoop :: GameState -> InputT IO()
 gameLoop st
-    | gameOver (board st) = outputStrLn "[INFO] Game Over"                                  -- If the game over detected then end the game
+    | gameOver (board st) = outputStrLn ("[INFO] Game Over. " ++ (getWinner (board st)))                                  -- If the game over detected then end the game
     | (turn st) == (ai st) = do outputStr ("[" ++ show(turn st) ++ "] Move: AI\n") 
                                 let st' = updateGameState st
                                 outputStrLn (showGameState st')

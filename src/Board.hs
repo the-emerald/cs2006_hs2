@@ -185,6 +185,17 @@ checkScore board = do let blackCount = length (filter (\x -> snd x == Black) (pi
                       (blackCount, whiteCount)                                                   -- Combine counts into (int, int) tuple
 
 
+-- Returns winning message
+getWinner :: Board -> String
+getWinner board 
+    | bscore < wscore = "The White player wins!"
+    | bscore > wscore = "The Black player wins!"
+    | otherwise = "Both players had equal scores!"
+  where 
+    score = checkScore board
+    bscore = fst score
+    wscore = snd score
+
 
 -- Return true if the game is complete (that is, either the board is
 -- full or there have been two consecutive passes)
@@ -206,8 +217,8 @@ playerPass st = do
 -- Calls validMoves function. Reduces overall clutter when getting valid moves as
 -- only the board and colour have to be given
 getValidMoves :: Board -> Col -> [Position]
---getValidMoves board colour = validMoves board colour (range ((0,0),(7,7)))
-getValidMoves board colour = []
+getValidMoves board colour = validMoves board colour (range ((0,0),(7,7)))
+
 
 -- Gets all valid moves for a given colour and list of positions
 validMoves :: Board -> Col -> [Position] -> [Position]

@@ -105,8 +105,16 @@ undo st
 
 
 -- Hint: IF the player asks for a hint. Then print the best possible move. 
+-- AI level was set to three. It is important for the hint to be meaningful 
+-- and appear quickly. 
 getHint :: GameState -> String 
-getHint st = "UPDATE THIS METHOD - GameOptions.hs"            -- TODO - ADD HINTS AFTER AI COMPLETED
+getHint st = do case getValidMoves (board st) (turn st) of
+                  [] -> "[HINT] There are no playable moves. You must [pass]"
+                  _  -> ("[HINT] The AI would play: " ++ mv) 
+              where
+                gt = buildTree generateMove (board st) (turn st)
+                aiMove = getBestMove 3 gt 
+                mv = (chr ((fst aiMove) + 65)) : show((snd aiMove) + 1)
 
 
 ---------------------- Functions For Validating Command Line Arguments ------------------------
