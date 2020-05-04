@@ -71,12 +71,12 @@ changeBoardSize size st = case getSize size of
 
 -- Saves the current game at current state with an entered name
 saveGame :: GameState -> String -> Either String GameState
-saveGame st name = Left "NEED TO IMPLEMENT THIS (GameOptions.hs)" -- TODO
+saveGame st name = Left "[INFO] This feature has not been implemented - see report"
 
 
 -- Reloads a given game
 reloadGame :: String -> Either String GameState
-reloadGame name = Left "NEED TO IMPLEMENT THIS (GameOptions.hs)"  -- TODO
+reloadGame name = Left "[INFO] This feature has not been implemented - see report" 
 
 
 -- Modifies AI Level 
