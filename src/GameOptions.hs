@@ -19,7 +19,7 @@ optionsMenu st =  ("---------------------------------------- Game Options ------
                   ++ ("\n  Allow for alternative starting positions  [toggle-asp]       (" ++ show(asp (board st)) ++ ")")
                   
                   ++ "\n\nGame Options:"
-                  ++ ("\n  AI Level    [ai:<level (1-3)>]                (" ++ show(aiLevel st) ++ ")")
+                  ++ ("\n  AI Level    [ai:<level (1-4)>]                (" ++ show(aiLevel st) ++ ")")
                   ++ "\n  Save Game   [save:<give a unique game name>]"
                   ++ "\n  Reload Game [reload:<game name>]"
                   
@@ -81,7 +81,7 @@ reloadGame name = Left "NEED TO IMPLEMENT THIS (GameOptions.hs)"  -- TODO
 -- Modifies AI Level 
 aiLv :: GameState -> String -> Either String GameState
 aiLv st level = case getLevel level of
-                  Nothing -> Left ("[ERROR] Invalid AI Level (" ++ level ++ "). Must 1, 2 or 3")
+                  Nothing -> Left ("[ERROR] Invalid AI Level (" ++ level ++ "). Range 1-4 Only")
                   Just lv -> Right (GameState (board st) (previous st) (canUndo st) (ai st) lv (turn st))
 
 
@@ -149,7 +149,7 @@ getLevel :: String -> Maybe Int
 getLevel level = 
   case readMaybe level :: Maybe Int of
     Just x ->
-      if x < 4 && x > 0
+      if x < 5 && x > 0
         then Just x
         else Nothing
     Nothing -> Nothing
@@ -176,5 +176,5 @@ usg :: String
 usg = "\n[USAGE] :main <Board Size> <AI Colour> <AI Level> <ASP Enabled>" ++
       "\n\t- Board Size:  (Int)  Range 4-26. Must be an even number." ++
       "\n\t- AI Colour:   (Col)  Black or White only." ++
-      "\n\t- AI Level:    (Int)  Range 1-3 only (1:Easy 3:Hard)" ++
+      "\n\t- AI Level:    (Int)  Range 1-4 only" ++
       "\n\t- ASP Enabled: (Bool) True or False Only."

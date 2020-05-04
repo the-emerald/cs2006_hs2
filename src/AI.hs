@@ -73,6 +73,8 @@ updateGameState w =
     1 -> randomMove w
     2 -> minimaxAI 2 w
     3 -> minimaxAI 3 w
+    4 -> minimaxAI 4 w
+    _ -> error "Invlaid AI Level"
 
 randomMove :: GameState -> GameState
 randomMove st =
