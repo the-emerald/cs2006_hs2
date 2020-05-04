@@ -100,7 +100,7 @@ optionHandler option st = case option of
 -- Undo: Revert to previous move 
 undo :: GameState -> Either String GameState 
 undo st 
-        | canUndo st = Right (previous st)
+        | canUndo st = Right (previous (previous st))
         | otherwise = Left "[ERROR] Cannot Undo Further"
 
 
