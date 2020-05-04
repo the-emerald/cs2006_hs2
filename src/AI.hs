@@ -1,6 +1,13 @@
 module AI where
 
 import Board
+import Data.List (maximumBy)
+import Control.Parallel.Strategies
+import Debug.Trace (traceShow, trace)
+
+import System.Random (randomRIO)
+import Control.Monad.IO.Class (liftIO)
+
 
 data GameTree = GameTree { game_board :: Board,
                            game_turn :: Col,
@@ -37,9 +44,10 @@ buildTree gen b c =
 -- Generate some set of "good" moves given the Board and Col
 generateMove :: Board -> Col -> [Position]
 generateMove b c =
-  tail moves
-  where
-    moves = getValidMoves b c
+  filter (\x -> case makeMove b c x of
+--    Just ok -> abs (trace (show (evaluate ok c)) (evaluate ok c)) > 50
+    Just ok -> abs (evaluate ok c) > 50
+    Nothing -> False) (getValidMoves b c)
 
 
 -- Get the best next move from a (possibly infinite) game tree. This should
@@ -49,12 +57,49 @@ generateMove b c =
 getBestMove :: Int -- ^ Maximum search depth
                -> GameTree -- ^ Initial game tree
                -> Position
-getBestMove = undefined
+getBestMove _ (GameTree _ _ []) = error "It's empty, yo!"
+getBestMove md (GameTree bd cl nxs) = fst (maximumBy (\x y -> compare (minimax md x) (minimax md y)) nxs)
+  where
+    minimax :: Int -> (Position, GameTree) -> Int
+    minimax 0 (_, GameTree b c _) = evaluate b c
+    minimax _ (_, GameTree b c []) = evaluate b c
+    minimax ply (_, GameTree b c ts) = maximum (parMap rdeepseq (minimax (ply - 1)) ts)
 
 -- Update the world state after some time has passed
 updateGameState :: GameState -- ^ current game state
                    -> GameState -- ^ new game state after computer move
-updateGameState w = w
+updateGameState w
+  | null (getValidMoves (board w) (ai w)) = playerPass w -- If there are no valid moves for the AI to play then the AI should pass
+  | otherwise =
+    case aiLevel w -- Otherwise the AI shoud play a move based on the set AI level
+          of
+      1 -> randomMove w
+      2 -> minimaxAI 2 w
+      3 -> minimaxAI 3 w
+      4 -> minimaxAI 4 w
+      _ -> error "Invlaid AI Level"
+
+
+-- Picks a random move from a list of valid moves
+randomMove :: GameState -> GameState
+randomMove st =
+  case makeMove (board st) (ai st) (head mvs) of -- Chosen by fair dice roll. Guaranteed to be random.
+    Just ok -> GameState ok st (canUndo st) (ai st) (aiLevel st) (other (turn st))
+    Nothing -> error "Random move generator made an illegal move"
+  where
+    mvs = getValidMoves (board st) (ai st)
+
+
+-- MinMax AI. Search depth specificed by AI level (Max:4)
+-- The greater the AI level the further into the future the AI looks
+minimaxAI :: Int -> GameState -> GameState
+minimaxAI p st = case makeMove (board st) (ai st) aiMove of
+              Just ok -> GameState ok st (canUndo st) (ai st) (aiLevel st) (other (turn st))
+              Nothing -> error "AI made an illegal move"
+            where
+              gt = buildTree generateMove (board st) (ai st)
+              aiMove = getBestMove p gt -- Search up to p plys
+
 
 {- Hint: 'updateGameState' is where the AI gets called. If the world state
  indicates that it is a computer player's turn, updateGameState should use
