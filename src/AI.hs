@@ -68,14 +68,16 @@ getBestMove md (GameTree bd cl nxs) = fst (maximumBy (\x y -> compare (minimax m
 -- Update the world state after some time has passed
 updateGameState :: GameState -- ^ current game state
                    -> GameState -- ^ new game state after computer move
-updateGameState w 
-      | (getValidMoves (board w) (ai w)) == [] =  playerPass w   -- If there are no valid moves for the AI to play then the AI should pass
-      | otherwise = case aiLevel w of                            -- Otherwise the AI shoud play a move based on the set AI level 
-                      1 -> randomMove w
-                      2 -> minimaxAI 2 w
-                      3 -> minimaxAI 3 w
-                      4 -> minimaxAI 4 w
-                      _ -> error "Invlaid AI Level"
+updateGameState w
+  | null (getValidMoves (board w) (ai w)) = playerPass w -- If there are no valid moves for the AI to play then the AI should pass
+  | otherwise =
+    case aiLevel w -- Otherwise the AI shoud play a move based on the set AI level
+          of
+      1 -> randomMove w
+      2 -> minimaxAI 2 w
+      3 -> minimaxAI 3 w
+      4 -> minimaxAI 4 w
+      _ -> error "Invlaid AI Level"
 
 
 -- Picks a random move from a list of valid moves
