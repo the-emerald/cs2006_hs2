@@ -35,9 +35,9 @@ settingsHandler option st = case option of
                               "toggle-ai" -> Right (changeAiPlayer st)                 -- Changes AI player
                               "toggle-asp" -> Right (changeASP st)                     -- Changes Alternative Starting Positions Value
                               ('s':'i':'z':'e':':':size) -> changeBoardSize size st    -- Alters The Board Size
-                              ('s':'a':'v':'e':':':name) -> saveGame st name
-                              ('r':'e':'l':'o':'a':'d':':':name) -> reloadGame name
-                              ('a':'i':':':level) -> aiLv st level
+                              ('s':'a':'v':'e':':':name) -> saveGame st name           -- Allows game to be saved (Not Implemented)
+                              ('r':'e':'l':'o':'a':'d':':':name) -> reloadGame name    -- Allows game to be reloaded (Not Implemented)
+                              ('a':'i':':':level) -> aiLv st level                     -- Allows AI level to be set
                               _ -> Left "[ERROR] Invalid Settings Choice"              -- Otherwise input is invalid and error returned
 
 
@@ -47,7 +47,7 @@ changeAiPlayer st = GameState (initBoard (size (board st)) (asp (board st)))  --
                               undefined                                       -- Board reset so no alternative state exists
                               False                                           -- There is no option for undo 
                               (other (ai st))                                 -- Change the colour of the AI player Black -> White or White -> Black
-                              (aiLevel st)
+                              (aiLevel st)                                    -- Retain AI level 
                               (ai st)                                         -- Change turn to previous AI colour 
 
 
@@ -57,7 +57,7 @@ changeASP st = GameState (otherAsp (board st))  -- Reset board with alternative 
                          undefined              -- There is no defined previous state
                          False                  -- Therefore the player can not undo a move 
                          (ai st)                -- Retain the colours of the AI player
-                         (aiLevel st)
+                         (aiLevel st)           -- Retain AI level 
                          (turn st)              -- and the colour of the current turn
 
 
@@ -117,6 +117,7 @@ getHint st =
     aiMove = getBestMove 3 gt
     mv = chr (fst aiMove + 65) : show (snd aiMove + 1)
 
+
 ---------------------- Functions For Validating Command Line Arguments ------------------------
 
 -- Inititates the game state with the user entered arguments
@@ -130,10 +131,11 @@ initGameState args
       (Just sz, Just ai, Just lv, Just asp) -> Right (GameState (initBoard sz asp) undefined False ai lv (other ai))
       (_, _, _, _) -> Left ("[ERROR] Could not initialise board with given arguments" ++ usg)
     where
-      size = getSize (head args)
-      ai = getColour (args !! 1)
-      lv = getLevel (args !! 2)
-      asp = getASP (args !! 3)
+      size = getSize (head args)   -- Size is first argument (head) of arguments list
+      ai = getColour (args !! 1)   -- AI colour is second argument 
+      lv = getLevel (args !! 2)    -- AI Level is third argument 
+      asp = getASP (args !! 3)     -- Alternative Starting Positions is fourth argument 
+
 
 -- Parses the entered board size
 getSize :: String -> Maybe Int 
@@ -145,7 +147,7 @@ getSize size =
         else Nothing
     Nothing -> Nothing
 
-  
+
 -- Parses entered AI Level
 getLevel :: String -> Maybe Int
 getLevel level = 

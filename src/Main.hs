@@ -12,31 +12,28 @@ import AI
 
 gameLoop :: GameState -> InputT IO()
 gameLoop st
-  | gameOver (board st) = outputStrLn ("[INFO] Game Over. " ++ getWinner (board st)) -- If the game over detected then end the game
-  | turn st == ai st = do
-      outputStr ("[" ++ show (turn st) ++ "] Move: AI\n")
-      let st' = updateGameState st
-      outputStrLn (showGameState st')
-      gameLoop st'
-  | otherwise = do
-      outputStr ("[" ++ show (turn st) ++ "] Move: ") -- Otherwise ask the user to enter a move (can also be a game option such as 'settings' or 'pass')
-      input <- getInputLine ""
-      let input' = lowerStr ((\(Just x) -> x) input) -- Convert input to lower case
-      case input' of
-        "quit" -> outputStrLn "[INFO] Game was finished by user" -- End the game immediately if the user enters 'quit'
-        "settings" -> do
-          outputStrLn (optionsMenu st)
-          settingsLoop st -- Run the in-game settings menu if the user enters 'settings'
-        input ->
-          case nextState input st -- Otherwise try and parse the input
-                of
-            Left msg -> do
-              outputStrLn (showGameState st) -- If the input can not be processed, output the board,
-              outputStrLn msg -- error message
-              gameLoop st -- and ask for another move
-            Right st' -> do
-              outputStrLn (showGameState st') -- If the input was valid then show the game state created from the input
-              gameLoop st'                        -- ask for another move
+  | gameOver (board st) = outputStrLn ("[INFO] Game Over. " ++ getWinner (board st))    -- If the game over detected then end the game
+  
+  | turn st == ai st = do outputStr ("[" ++ show (turn st) ++ "] Move: AI\n")           -- If its AI turn then play AI move
+                          let st' = updateGameState st
+                          outputStrLn (showGameState st')
+                          gameLoop st'
+
+  | otherwise = do outputStr ("[" ++ show (turn st) ++ "] Move: ")                      -- Otherwise ask the user to enter a move (can also be a game option such as 'settings' or 'pass')
+                   input <- getInputLine ""
+                   let input' = lowerStr ((\(Just x) -> x) input)                       -- Convert input to lower case
+                   case input' of
+                     "quit"     -> outputStrLn "[INFO] Game was finished by user"       -- End the game immediately if the user enters 'quit'
+                     
+                     "settings" -> do outputStrLn (optionsMenu st)
+                                      settingsLoop st                                   -- Run the in-game settings menu if the user enters 'settings'
+                     
+                     input      -> case nextState input st of                           -- Otherwise try and parse the input
+                                      Left msg -> do outputStrLn (showGameState st)     -- If the input can not be processed, output the board,
+                                                     outputStrLn msg                    -- error message
+                                                     gameLoop st                        -- and ask for another move
+                                      Right st' -> do outputStrLn (showGameState st')   -- If the input was valid then show the game state created from the input
+                                                      gameLoop st'                      -- ask for another move
           
 
 settingsLoop ::GameState -> InputT IO()

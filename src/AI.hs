@@ -41,6 +41,7 @@ buildTree gen b c =
                              -- successful, make move and build tree from 
                              -- here for opposite player
 
+
 -- Generate some set of "good" moves given the Board and Col
 generateMove :: Board -> Col -> [Position]
 generateMove b c =
@@ -64,6 +65,7 @@ getBestMove md (GameTree bd cl nxs) = fst (maximumBy (\x y -> compare (minimax m
     minimax 0 (_, GameTree b c _) = evaluate b c
     minimax _ (_, GameTree b c []) = evaluate b c
     minimax ply (_, GameTree b c ts) = maximum (parMap rdeepseq (minimax (ply - 1)) ts)
+
 
 -- Update the world state after some time has passed
 updateGameState :: GameState -- ^ current game state

@@ -9,22 +9,18 @@ import Data.List (nubBy)
 data Col = Black | White
   deriving Show
 
-
 -- Define Eq for colours to allow for == to be used
 instance Eq Col where 
   (==) Black Black = True 
   (==) White White = True 
   (==) _ _ = False
 
-
 -- Swaps piece colour
 other :: Col -> Col
 other Black = White
 other White = Black
 
-
 type Position = (Int, Int)
-
 
 -- A Board is a record containing the board size (a board is a square grid, n * n),
 -- Whether or not the first two moves can be at any position on the board (asp)
@@ -64,7 +60,7 @@ data GameState
                      previous :: GameState,   -- Previous game state (used when undoing a move)
                      canUndo :: Bool,         -- Used to determine whether or not a move can be undone 
                      ai :: Col,               -- Which color is being played by the AI
-                     aiLevel :: Int,           -- Detemines which AI implementation is to be used 
+                     aiLevel :: Int,          -- Detemines which AI implementation is to be used 
                      turn :: Col }            -- Colour of player whos turn it is
   deriving Show
 
@@ -92,28 +88,23 @@ makeMove board colour position =
 -- Combines all of the checks into one, declutters makeMove method
 checkMove :: Board -> Col -> Position -> Bool
 checkMove board colour position
-      -- Allows for alternative starting positions
-  | asp board && length (pieces board) < 6 =
-    positionOnBoard board position -- If alternative starting positions are enabled, if less than 6 pieces are on the board (4 starting + 2 first moves)
-     &&
-    cellEmpty (pieces board) position -- Check that the piece is on the board and that the cell is empty
-      -- Standard checks which ensure that pieces are flipped
-  | otherwise =
-    positionOnBoard board position -- For normal moves: If the position is on the board
-     &&
-    cellEmpty (pieces board) position -- If the cell is empty
-     &&
-    not (null (getFlipList board colour position))   -- If a piece is flipped. Move is valid
+  -- Allows for alternative starting positions
+  | asp board && length (pieces board) < 6 = positionOnBoard board position        -- If alternative starting positions are enabled, if less than 6 pieces are on the board (4 starting + 2 first moves)
+                                             && cellEmpty (pieces board) position  -- Check that the piece is on the board and that the cell is empty
+  -- Standard checks which ensure that pieces are flipped
+  | otherwise = positionOnBoard board position                      -- For normal moves: If the position is on the board
+                && cellEmpty (pieces board) position                -- If the cell is empty
+                && not (null (getFlipList board colour position))   -- If a piece is flipped. Move is valid
 
 
 
 -- Checks if entered position is on the current board
 positionOnBoard :: Board -> Position -> Bool
 positionOnBoard board (x, y)
-  | x == -1 || y == -1 = False -- -1 Signals error in input (See Input.hs) therefore position must be invalid
-  | x >= size board || y >= size board = False -- If either the x or y value is greater than the size of the current board then return false
-  | x < 0 || y < 0 = False -- If either the x or y value is less than the minimum possible positional value, return false
-  | otherwise = True                                  -- Otherwise the entered position must be on the board
+  | x == -1 || y == -1 = False                    -- -1 Signals error in input (See Input.hs) therefore position must be invalid
+  | x >= size board || y >= size board = False    -- If either the x or y value is greater than the size of the current board then return false
+  | x < 0 || y < 0 = False                        -- If either the x or y value is less than the minimum possible positional value, return false
+  | otherwise = True                              -- Otherwise the entered position must be on the board
 
 
 
@@ -129,9 +120,9 @@ cellEmpty (((x,y), player) : xs) (xPos, yPos)
 -- Gets a list of pieces to be flipped in all 8 directions 
 getFlipList :: Board -> Col -> Position -> [Position]
 getFlipList board colour position = 
-  concatMap (\x -> getFlipsForDirection board colour position x []) directions   -- Generates a list of all flippable pieces in all directions
+  concatMap (\x -> getFlipsForDirection board colour position x []) directions            -- Generates a list of all flippable pieces in all directions
   where
-    directions = [(0, -1), (1, 0), (0, 1), (-1, 0), (1, -1), (1, 1), (-1, 1), (-1, -1)] -- List representing all possible directions in which tokens could be flipped
+    directions = [(0, -1), (1, 0), (0, 1), (-1, 0), (1, -1), (1, 1), (-1, 1), (-1, -1)]   -- List representing all possible directions in which tokens could be flipped
                                           
 
 
@@ -149,6 +140,7 @@ getFlipsForDirection board colour (x, y) (nX, nY) xs =
     cellColour = getCellColour (x', y') (pieces board) /= colour
 
 
+
 -- Changes colour of piece if it is present in the list of pieces to be flipped
 flipPiece :: [Position] -> (Position, Col) -> (Position, Col)
 flipPiece pieces (position, colour) =
@@ -157,6 +149,7 @@ flipPiece pieces (position, colour) =
     else (position, colour)
   where
     toFlip = filter (== position) pieces == [position]
+
 
 
 -- Adds Piece to given list of pieces 
@@ -185,6 +178,7 @@ checkScore board = do let blackCount = length (filter (\x -> snd x == Black) (pi
                       (blackCount, whiteCount)                                                   -- Combine counts into (int, int) tuple
 
 
+
 -- Returns winning message
 getWinner :: Board -> String
 getWinner board 
@@ -197,13 +191,15 @@ getWinner board
     wscore = snd score
 
 
+
 -- Return true if the game is complete (that is, either the board is
 -- full or there have been two consecutive passes)
 gameOver :: Board -> Bool
 gameOver board
-  | length (pieces board) == (size board * size board) = True -- If the number of pieces placed is equal to the size of the board then game is over
-  | passes board == 2 = True -- If the number of passes reaches two then game is over
-  | otherwise = False                                                 -- Otherwise the game is not over
+  | length (pieces board) == (size board * size board) = True   -- If the number of pieces placed is equal to the size of the board then game is over
+  | passes board == 2 = True                                    -- If the number of passes reaches two then game is over
+  | otherwise = False                                           -- Otherwise the game is not over
+
 
 
 -- Pass: If player passes then new state returned with number of passes increased
@@ -213,6 +209,7 @@ playerPass st = do
   GameState board' (previous st) True (ai st) (aiLevel st) (other (turn st))
 
 
+
 -- Gets all valid moves for a given board and colour
 -- Calls validMoves function. Reduces overall clutter when getting valid moves as
 -- only the board and colour have to be given
@@ -220,6 +217,7 @@ getValidMoves :: Board -> Col -> [Position]
 getValidMoves board colour = validMoves board colour (range ((0, 0), (max, max)))
   where
     max = size board - 1
+
 
 
 -- Gets all valid moves for a given colour and list of positions
