@@ -236,14 +236,12 @@ validMoves board colour (x:xs) =
 -- and https://kartikkukreja.wordpress.com/2013/03/30/heuristic-function-for-reversiothello/
 evaluate :: Board -> Col -> Int
 evaluate b c =
-  (par * 25) + (mob * 5) + (coCap * 15) + (stability * 25) + (coClo * 15) + (front * 5)
+  (par * 25) + (mob * 5) + (coCap * 15) + (coClo * 15)
   where
     par = evaluateParity b c
     mob = evaluateMobility b c
     coCap = evaluateCornersCaptured b c
-    stability = 0
     coClo = evaluateCornerCloseness b c
-    front = 0
 
 -- 5.1.1: Coin Parity (p)
 evaluateParity :: Board -> Col -> Int
@@ -273,14 +271,15 @@ evaluateCornersCaptured b c = 25 * (maxC - minC)
     minC = length (filter (\x -> getCellColour x (pieces b) == other c) (filter (not . cellEmpty (pieces b)) corners))
 
 -- 5.1.4: Stability
--- TODO: Find a way to calculate stability
-evaluateStability :: Board -> Col -> Int
-evaluateStability b c = stability
-  where
-    oc = other c
-    unstablePieces =
-      length (nubBy (\x y -> fst x == fst y && snd x == snd y) (concatMap (getFlipList b oc) (getValidMoves b oc)))
-    stability = 5
+-- NOT IMPLEMENTED
+
+--evaluateStability :: Board -> Col -> Int
+--evaluateStability b c = stability
+--  where
+--    oc = other c
+--    unstablePieces =
+--      length (nubBy (\x y -> fst x == fst y && snd x == snd y) (concatMap (getFlipList b oc) (getValidMoves b oc)))
+--    stability = 5
 
 -- Karti: Close corners (l)
 evaluateCornerCloseness :: Board -> Col -> Int
@@ -309,6 +308,6 @@ evaluateCornerCloseness b c = -12 * (maxL - minL)
               (concatMap tail (filter (not . cellEmpty (pieces b) . head) closeCorners))))
 
 -- Karti: Frontier tiles (L93) (f)
--- TODO: Find a way to calculate frontier tiles
-evaluateFront :: Board -> Col -> Int
-evaluateFront b c = undefined
+-- NOT IMPLEMENTED
+--evaluateFront :: Board -> Col -> Int
+--evaluateFront b c = undefined
