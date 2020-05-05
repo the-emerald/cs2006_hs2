@@ -89,7 +89,7 @@ makeMove board colour position =
 checkMove :: Board -> Col -> Position -> Bool
 checkMove board colour position
   -- Allows for alternative starting positions
-  | asp board && length (pieces board) < 6 = positionOnBoard board position        -- If alternative starting positions are enabled, if less than 6 pieces are on the board (4 starting + 2 first moves)
+  | asp board && length (pieces board) < 8 = positionOnBoard board position        -- If alternative starting positions are enabled, if less than 6 pieces are on the board (4 starting + 2 first moves)
                                              && cellEmpty (pieces board) position  -- Check that the piece is on the board and that the cell is empty
   -- Standard checks which ensure that pieces are flipped
   | otherwise = positionOnBoard board position                      -- For normal moves: If the position is on the board
