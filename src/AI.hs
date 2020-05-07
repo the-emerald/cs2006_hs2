@@ -46,7 +46,6 @@ buildTree gen b c =
 generateMove :: Board -> Col -> [Position]
 generateMove b c =
   filter (\x -> case makeMove b c x of
---    Just ok -> abs (trace (show (evaluate ok c)) (evaluate ok c)) > 50
     Just ok -> abs (evaluate ok c) > 50
     Nothing -> False) (getValidMoves b c)
 
